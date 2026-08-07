@@ -308,6 +308,20 @@
   .pwrow .go{width:44px;height:44px;background:linear-gradient(150deg,var(--accent),var(--accent-2));color:#0B0D14}
   .hint{font-size:12.5px;color:var(--faint);line-height:1.55;margin:14px 4px 0}
 
+  .tabs{display:flex;gap:6px;padding:5px;margin-bottom:18px;border-radius:999px;
+        background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07)}
+  .tab{flex:1;padding:10px;border:0;border-radius:999px;background:transparent;color:var(--dim);
+       font-family:var(--font);font-size:14px;font-weight:500;cursor:pointer;
+       transition:background var(--dur) var(--ease),color var(--dur) var(--ease)}
+  .tab.on{background:linear-gradient(150deg,var(--accent),var(--accent-2));color:#0B0D14;font-weight:600}
+  .setup{margin-top:16px;color:var(--faint);font-size:12px}
+  .setup summary{list-style:none;cursor:pointer;padding:9px 15px;display:inline-flex;align-items:center;
+                 border:1px solid rgba(255,255,255,.09);border-radius:999px;background:rgba(255,255,255,.05);
+                 color:var(--dim);font-size:13px}
+  .setup summary::-webkit-details-marker{display:none}
+  .setup .body{margin-top:12px}
+  .setup label{display:block;margin:0 0 6px 20px;font-size:12px}
+
   /* ---------- окно правки ---------- */
   .modal{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;padding:18px;
          background:rgba(4,5,8,.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
@@ -487,6 +501,11 @@
       <h2 class="display">С <em>возвращением</em></h2>
       <p class="lead">Войдите под своей фамилией, чтобы видеть личную статистику и править свои смены. Первый вход задаёт пароль.</p>
       <section class="card">
+        <div class="tabs" id="tabs">
+          <button class="tab on" data-mode="login">Вход</button>
+          <button class="tab" data-mode="reg">Регистрация</button>
+        </div>
+
         <div class="field">
           <label for="lLogin">Логин — фамилия и инициалы</label>
           <input class="pill" id="lLogin" list="people" placeholder="Лямин Н.А."
@@ -496,12 +515,28 @@
           <label for="lPass">Пароль</label>
           <input class="pill" id="lPass" type="password" placeholder="от 4 знаков"
                  autocomplete="current-password" enterkeyhint="go">
-          <button class="go" id="lGo" aria-label="Войти">
+          <button class="go" id="lGo" aria-label="Продолжить">
             <svg viewBox="0 0 24 24" fill="none"><path d="M8 4l8 8-8 8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
         </div>
+        <div class="field" id="rep2" hidden>
+          <label for="lPass2">Повторите пароль</label>
+          <input class="pill" id="lPass2" type="password" placeholder="ещё раз"
+                 autocomplete="new-password" enterkeyhint="go">
+        </div>
         <p class="hint" id="lHint">Пароль хранится в таблице только в виде необратимого хеша — прочитать его нельзя ни в таблице, ни в коде сайта.</p>
       </section>
+
+      <details class="setup">
+        <summary>Сайт не видит таблицу?</summary>
+        <div class="body">
+          <label for="api">Адрес веб-приложения Apps Script</label>
+          <input class="pill" id="api" type="url" inputmode="url" autocomplete="off"
+                 placeholder="https://script.google.com/macros/s/…/exec">
+          <p class="hint">Возьмите актуальную ссылку в редакторе скрипта: Deploy → Manage
+             deployments → Web app URL. Она сохранится в этом браузере.</p>
+        </div>
+      </details>
     </div>
 
     <!-- кабинет -->
@@ -581,12 +616,24 @@ var NORM = 160;                       // месячная норма часов 
 /* ======================================================================= */
 
 var AUTH_KEY = 'tabel.auth';
+var URL_KEY  = 'tabel.apiUrl';
+var authMode = 'login';           // login | reg
 var rows = [], timer = null, statFilter = '', sheetUrl = '', editId = '', apiVer = 0;
 var OLD_SCRIPT = 'В таблице развёрнута старая версия code.gs. Обновите скрипт: ' +
                  'Deploy → Manage deployments → карандаш → Version: New version.';
 var auth = { login: '', token: '' };
 
 function $(id){ return document.getElementById(id); }
+
+/* адрес скрипта: зашитый можно перебить вручную, если развёртывание пересоздали */
+(function pickUrl(){
+  try {
+    var q = new URLSearchParams(location.search).get('api');
+    if (q){ localStorage.setItem(URL_KEY, q); API_URL = q; return; }
+    var saved = localStorage.getItem(URL_KEY);
+    if (saved) API_URL = saved;
+  } catch(e){}
+})();
 
 /* ---- сессия ---- */
 function loadAuth(){
@@ -617,7 +664,7 @@ function applyAuth(){
 
 function openCab(){
   applyAuth();
-  if (apiVer && apiVer < 3){
+  if (apiVer && apiVer < 5){
     $('lHint').innerHTML = '<b style="color:#FFB9B3">Скрипт в таблице не обновлён.</b> ' +
       'Вставьте новый code.gs и сделайте Deploy → Manage deployments → карандаш → ' +
       'Version: New version. Вход заработает сразу после этого.';
@@ -1118,25 +1165,61 @@ document.addEventListener('keydown', function(e){
   else if (!$('cab').hidden) closeCab();
 });
 
+function setMode(m){
+  authMode = m;
+  Array.prototype.forEach.call($('tabs').children, function(b){
+    b.classList.toggle('on', b.dataset.mode === m);
+  });
+  $('rep2').hidden = (m !== 'reg');
+  $('lPass').setAttribute('autocomplete', m === 'reg' ? 'new-password' : 'current-password');
+  $('lHint').textContent = m === 'reg'
+    ? 'Придумайте пароль — логин закрепится за ним. Фамилию пишите так же, как её пишут в табеле.'
+    : 'Пароль хранится в таблице только в виде необратимого хеша — прочитать его нельзя.';
+}
+$('tabs').addEventListener('click', function(e){
+  var b = e.target.closest('.tab');
+  if (b) setMode(b.dataset.mode);
+});
+
 function doLogin(){
   var login = $('lLogin').value.trim().replace(/\s+/g, ' ');
   var pass = $('lPass').value;
   if (!login) { say('Введите логин.', true); $('lLogin').focus(); return; }
   if (!pass || pass.length < 4) { say('Пароль от 4 знаков.', true); $('lPass').focus(); return; }
-  if (apiVer && apiVer < 3) { say(OLD_SCRIPT, true); return; }   // скрипт точно старый
+  if (authMode === 'reg' && pass !== $('lPass2').value){
+    say('Пароли не совпадают.', true); $('lPass2').focus(); return;
+  }
+  if (apiVer && apiVer < 5) { say(OLD_SCRIPT, true); return; }
   $('lGo').disabled = true;
-  send({ action:'auth', login:login, pass:pass }, function(d){
+  send({ action: (authMode === 'reg' ? 'register' : 'auth'), login:login, pass:pass }, function(d){
     auth = { login:d.login, token:d.token };
     saveAuth(auth);
-    $('lPass').value = '';
+    $('lPass').value = ''; $('lPass2').value = '';
     applyAuth();
     renderCab();
-    say(d.isNew ? 'Профиль создан, пароль сохранён' : 'Вы вошли');
+    say(d.isNew ? 'Профиль создан' : 'Вы вошли');
     $('lGo').disabled = false;
-  }, function(){ $('lGo').disabled = false; });
+  }, function(e){
+    $('lGo').disabled = false;
+    if (/нет — зарегистрируйтесь/i.test(e.message)) setMode('reg');
+    if (/уже зарегистрирован/i.test(e.message)) setMode('login');
+  });
 }
 $('lGo').addEventListener('click', doLogin);
-$('lPass').addEventListener('keydown', function(e){ if (e.key === 'Enter') doLogin(); });
+$('lPass').addEventListener('keydown', function(e){
+  if (e.key !== 'Enter') return;
+  if (authMode === 'reg') $('lPass2').focus(); else doLogin();
+});
+$('lPass2').addEventListener('keydown', function(e){ if (e.key === 'Enter') doLogin(); });
+$('api').addEventListener('change', function(){
+  var v = this.value.trim();
+  if (!v) return;
+  API_URL = v;
+  try { localStorage.setItem(URL_KEY, v); } catch(e){}
+  mode = 'fetch'; lastErr = '';
+  say('Адрес сохранён, проверяю связь');
+  load();
+});
 $('lLogin').addEventListener('keydown', function(e){ if (e.key === 'Enter') $('lPass').focus(); });
 
 $('cabOut').addEventListener('click', function(){
@@ -1197,6 +1280,8 @@ window.addEventListener('resize', function(){ clearTimeout(window.rz); window.rz
   $('date').value = iso.slice(0, 10);
   $('fMonth').value = iso.slice(0, 7);
   if (isAuthed()) $('person').value = auth.login;
+  $('api').value = API_URL;
+  setMode('login');
   applyAuth();
   applyDevice();
   refreshMeter();
