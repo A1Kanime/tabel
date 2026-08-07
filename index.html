@@ -545,7 +545,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 010 18M12 3a15 15 0 000 18"/></svg>
         <span id="langCode">RU</span>
       </button>
-      <span class="ver" id="ver">v11</span>
+      <span class="ver" id="ver">v12</span>
       <div class="lamp"><span class="dot" id="dot"></span><span id="state">нет связи</span></div>
       <button class="me-btn" id="meBtn" title="Личный кабинет">
         <span class="nm" id="meName">Кабинет</span>
@@ -1034,7 +1034,7 @@ function detectLang(){
 }
 function detectTz(){
   try { return Intl.DateTimeFormat().resolvedOptions().timeZone || L().tz; }
-  catch(e){ return L().tz; }
+  catch(e){ return L().tz; }        // L().tz — запасной вариант, а не приоритет
 }
 
 /* дата «сегодня» в выбранном поясе, а не в поясе компьютера */
@@ -1091,10 +1091,11 @@ function nextLang(){
   setLang(keys[(keys.indexOf(lang) + 1) % keys.length]);
 }
 
-function setLang(v, keepTz){
+/* Язык и часовой пояс независимы: человек может писать по-русски,
+   находясь во Владивостоке. Пояс берётся из браузера и меняется только вручную. */
+function setLang(v){
   lang = LANGS[v] ? v : 'ru';
   try { localStorage.setItem(LANG_KEY, lang); } catch(e){}
-  if (!keepTz){ tz = L().tz; try { localStorage.setItem(TZ_KEY, tz); } catch(e){} }
   if ($('selLang')) $('selLang').value = lang;
   if ($('selTz')) fillTz();
   langLabel();
@@ -2035,7 +2036,7 @@ window.addEventListener('resize', function(){ clearTimeout(window.rz); window.rz
 
 /* ---- запуск ---- */
 (function init(){
-  console.log('Табель — сборка v11');
+  console.log('Табель — сборка v12');
   auth = loadAuth();
 
   try { lang = localStorage.getItem(LANG_KEY) || detectLang(); } catch(e){ lang = detectLang(); }
