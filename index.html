@@ -1197,28 +1197,55 @@ function agg(list){
   return a;
 }
 
+var MONTH_RU = ['Январь','Февраль','Март','Апрель','Май','Июнь',
+                'Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+function monthLabel(key){                     // «2026-07» → «Июль 2026»
+  if (!key) return 'нет данных';
+  return MONTH_RU[Number(key.slice(5, 7)) - 1] + ' ' + key.slice(0, 4);
+}
+
+// лучший месяц ищем по всей своей истории, а не по выбранному периоду
+function bestMonths(){
+  var m = {};
+  rows.forEach(function(r){
+    var k = toISO(r.date).slice(0, 7);
+    if (k.length !== 7) return;
+    if (!m[k]) m[k] = { h:0, n:0 };
+    m[k].h += Number(r.hours) || 0;
+    m[k].n += 1;
+  });
+  var keys = Object.keys(m);
+  var byH = keys.slice().sort(function(a, b){ return m[b].h - m[a].h; })[0];
+  var byN = keys.slice().sort(function(a, b){ return m[b].n - m[a].n; })[0];
+  return { hKey: byH, hVal: byH ? m[byH].h : 0,
+           nKey: byN, nVal: byN ? m[byN].n : 0 };
+}
+
 function renderStats(list){
   var a = agg(list);
-  var pct = Math.round(a.sum / NORM * 100);
+  var b = bestMonths();
   // всё считается только по своим сменам — чужих данных на странице нет
   var cards = [
-    { k:'cup',   id:'',       cap:'Часов за месяц', v: a.sum.toFixed(1), u:'ч',  n: pct + '% от нормы ' + NORM + ' ч' },
-    { k:'stack', id:'shifts', cap:'Смен за месяц',  v: a.n,              u:'см', n:'в выбранном периоде' },
-    { k:'clock', id:'',       cap:'Средняя смена',  v: a.avg.toFixed(2), u:'ч',  n:'по вашим записям' },
-    { k:'flame', id:'over',   cap:'Переработки',    v: a.over,           u:'см', n:'дольше 8 часов' },
-    { k:'moon',  id:'night',  cap:'Ночные смены',   v: a.night,          u:'см', n:'старт после 20:00' }
+    { k:'cup',   id:'', m:b.hKey, cap:'Топ часов',
+      v: b.hKey ? b.hVal.toFixed(1) : '—', u:'ч',  n: monthLabel(b.hKey) },
+    { k:'stack', id:'', m:b.nKey, cap:'Топ по сменам',
+      v: b.nKey ? b.nVal : '—',            u:'см', n: monthLabel(b.nKey) },
+    { k:'clock', id:'',     cap:'Средняя смена', v: a.avg.toFixed(2), u:'ч',  n:'по вашим записям' },
+    { k:'flame', id:'over', cap:'Переработки',   v: a.over,           u:'см', n:'дольше 8 часов' }
   ];
 
   var box = $('stats');
   if (box.children.length !== cards.length){
     box.innerHTML = cards.map(function(c){
-      return '<button class="stat"' + (c.id ? ' data-f="' + c.id + '"' : '') + '>' +
+      return '<button class="stat"' + (c.id ? ' data-f="' + c.id + '"' : '') +
+             (c.m ? ' data-m="' + c.m + '"' : '') + '>' +
              '<div class="ic">' + icon(c.k) + esc(c.cap) + '</div>' +
              '<div class="v"></div><div class="n"></div></button>';
     }).join('');
   }
   cards.forEach(function(c, i){
     var el = box.children[i], v = el.querySelector('.v'), n = el.querySelector('.n');
+    if (c.m) el.dataset.m = c.m; else delete el.dataset.m;
     var html = esc(String(c.v)) + (c.u ? '<em>' + c.u + '</em>' : '');
     if (v.innerHTML !== html){
       v.innerHTML = html;
@@ -1446,7 +1473,15 @@ $('cabList').addEventListener('click', rowClick);
 
 $('stats').addEventListener('click', function(e){
   var b = e.target.closest('.stat');
-  if (!b || !b.dataset.f) return;
+  if (!b) return;
+  if (b.dataset.m){                         // нажали на лучший месяц — открываем его
+    $('fMonth').value = b.dataset.m;
+    statFilter = '';
+    render();
+    if (isAuthed()) renderCab();
+    return;
+  }
+  if (!b.dataset.f) return;
   statFilter = (statFilter === b.dataset.f) ? '' : b.dataset.f;
   render();
 });
