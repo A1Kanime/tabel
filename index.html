@@ -331,6 +331,58 @@
   .setup .body{margin-top:12px}
   .setup label{display:block;margin:0 0 6px 20px;font-size:12px}
 
+  /* ---------- кто отсутствует ---------- */
+  .away{padding:20px 18px}
+  .away-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .away-h h3{margin:0;font-size:16px;font-weight:600;letter-spacing:-.02em}
+  .cnt-pill{font-size:12px;color:var(--dim);background:rgba(255,255,255,.06);
+            border:1px solid var(--edge);border-radius:999px;padding:3px 10px;font-variant-numeric:tabular-nums}
+  .search{min-height:46px;margin-bottom:14px;font-size:15px}
+  .away-g{margin-bottom:12px}
+  .away-g:last-child{margin-bottom:0}
+  .g-lbl{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--faint);margin:0 0 8px 4px}
+  .g-lbl i{width:7px;height:7px;border-radius:50%;display:block}
+  .g-lbl i.sick{background:var(--warn);box-shadow:0 0 8px rgba(245,185,66,.6)}
+  .g-lbl i.vac{background:var(--ok);box-shadow:0 0 8px rgba(63,215,154,.6)}
+  .away-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:16px;
+            background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.06);margin-bottom:6px}
+  .away-row .nm{flex:1;min-width:0;font-size:14px;font-weight:500;
+                white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .away-row .dt{font-size:12px;color:var(--dim);white-space:nowrap;font-variant-numeric:tabular-nums}
+  .away-row .now{font-size:10.5px;color:#0B0D14;background:var(--accent);border-radius:999px;
+                 padding:2px 7px;font-weight:600;flex:none}
+  .away-none{font-size:13px;color:var(--faint);padding:6px 4px}
+
+  /* ---------- зарплата ---------- */
+  .pay{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px}
+  .pay-in,.pay-out{padding:16px;border-radius:24px;
+    background:linear-gradient(155deg,rgba(255,255,255,.09),rgba(255,255,255,.03));
+    border:1px solid rgba(255,255,255,.09);
+    backdrop-filter:blur(22px) saturate(180%);-webkit-backdrop-filter:blur(22px) saturate(180%)}
+  .pay-in .field{margin-bottom:10px}
+  .pay-in .field:last-child{margin-bottom:0}
+  .pay-out{display:flex;flex-direction:column;justify-content:center;
+    background:linear-gradient(150deg,rgba(124,140,255,.20),rgba(179,137,255,.07) 60%,rgba(255,255,255,.04))}
+  .pay-sum{font-size:clamp(30px,6vw,44px);font-weight:700;letter-spacing:-.04em;line-height:1;
+    font-variant-numeric:tabular-nums;
+    background:linear-gradient(180deg,#FFFFFF,#B9C2E8);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .pay-note{font-size:12.5px;color:var(--dim);margin-top:8px}
+  .pay-rows{margin-top:14px;display:flex;flex-direction:column;gap:6px}
+  .pay-rows div{display:flex;justify-content:space-between;font-size:13px;color:var(--dim)}
+  .pay-rows b{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums}
+
+  /* ---------- форма отсутствия ---------- */
+  .abs-form{padding:16px;border-radius:24px;margin-bottom:24px;
+    background:linear-gradient(155deg,rgba(255,255,255,.09),rgba(255,255,255,.03));
+    border:1px solid rgba(255,255,255,.09)}
+  .my-abs{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+  .my-abs .away-row{margin:0}
+  .my-abs .x{width:28px;height:28px;flex:none;border-radius:50%;border:1px solid rgba(255,255,255,.10);
+             background:transparent;color:var(--faint);cursor:pointer;font-size:13px;line-height:1}
+  .my-abs .x:active{color:var(--bad);border-color:rgba(255,95,82,.5)}
+
+  @media (max-width:560px){ .pay{grid-template-columns:1fr} }
+
   /* ---------- окно правки ---------- */
   .modal{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;padding:18px;
          background:rgba(4,5,8,.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
@@ -476,6 +528,21 @@
         </button>
       </div>
     </section>
+    <section class="card away">
+      <div class="away-h">
+        <h3>Кто отсутствует</h3>
+        <span class="cnt-pill" id="awayCnt">0</span>
+      </div>
+      <input class="pill search" id="absQ" placeholder="Поиск по фамилии" autocomplete="off">
+      <div class="away-g">
+        <div class="g-lbl"><i class="sick"></i>Больничный</div>
+        <div id="listSick"></div>
+      </div>
+      <div class="away-g">
+        <div class="g-lbl"><i class="vac"></i>Отпуск</div>
+        <div id="listVac"></div>
+      </div>
+    </section>
   </div>
 
   <div class="journal">
@@ -573,6 +640,57 @@
         <div class="tile"><div class="k">Ночные</div><div class="b" id="tNight">0</div><div class="s">старт после 20:00</div></div>
       </div>
 
+      <h3>Расчёт зарплаты</h3>
+      <div class="pay">
+        <div class="pay-in">
+          <div class="field">
+            <label for="rate">Часовая тарифная ставка, ₽</label>
+            <input class="pill" id="rate" type="number" min="0" step="1" inputmode="decimal" placeholder="например 350">
+          </div>
+          <div class="two">
+            <div class="field">
+              <label for="kOver">Коэффициент за часы сверх 8</label>
+              <input class="pill" id="kOver" type="number" min="1" step="0.1" value="1">
+            </div>
+            <div class="field">
+              <label for="ndfl">Вычесть НДФЛ 13%</label>
+              <select class="pill" id="ndfl">
+                <option value="0">Нет, показать начисление</option>
+                <option value="1">Да, показать на руки</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="pay-out">
+          <div class="pay-sum" id="paySum">0 ₽</div>
+          <div class="pay-note" id="payNote">Введите ставку</div>
+          <div class="pay-rows" id="payRows"></div>
+        </div>
+      </div>
+
+      <h3>Больничный и отпуск</h3>
+      <div class="abs-form">
+        <div class="two">
+          <div class="field">
+            <label for="aType">Тип</label>
+            <select class="pill" id="aType">
+              <option>Больничный</option>
+              <option>Отпуск</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="aFrom">С какого</label>
+            <input class="pill" type="date" id="aFrom">
+          </div>
+        </div>
+        <div class="field">
+          <label for="aTo">По какое включительно</label>
+          <input class="pill" type="date" id="aTo">
+        </div>
+        <button class="btn" id="aAdd">Отметить отсутствие</button>
+        <div id="myAbs" class="my-abs"></div>
+      </div>
+
       <h3>Мои смены</h3>
       <div class="cab-list" id="cabList"></div>
 
@@ -630,7 +748,7 @@ var NORM = 160;                       // месячная норма часов 
 var AUTH_KEY = 'tabel.auth';
 var URL_KEY  = 'tabel.apiUrl';
 var authMode = 'login';           // login | reg
-var rows = [], timer = null, statFilter = '', sheetUrl = '', editId = '', apiVer = 0;
+var rows = [], absences = [], timer = null, statFilter = '', sheetUrl = '', editId = '', apiVer = 0;
 var OLD_SCRIPT = 'В таблице развёрнута старая версия code.gs. Обновите скрипт: ' +
                  'Deploy → Manage deployments → карандаш → Version: New version.';
 var auth = { login: '', token: '' };
@@ -662,6 +780,13 @@ function initials(name){
 }
 function isAuthed(){ return !!(auth.login && auth.token); }
 
+function fillRate(){
+  var v = loadRate();
+  if (v.rate !== undefined) $('rate').value = v.rate;
+  if (v.k) $('kOver').value = v.k;
+  if (v.ndfl) $('ndfl').value = v.ndfl;
+}
+
 function applyAuth(){
   document.documentElement.classList.toggle('authed', isAuthed());
   $('meName').textContent = isAuthed() ? auth.login : 'Кабинет';
@@ -672,6 +797,7 @@ function applyAuth(){
   $('cabView').hidden = !isAuthed();
   $('cabTag').textContent = isAuthed() ? 'Личный кабинет' : 'Вход для сотрудников';
   if (isAuthed()) $('person').value = $('person').value || auth.login;
+  if (isAuthed()) fillRate();
 }
 
 function openCab(){
@@ -729,8 +855,10 @@ function say(text, bad){
 function absorb(d){
   apiVer = d.api || 1;      // ответ без поля api = старая версия скрипта
   if (d.rows) rows = d.rows;
+  if (d.absences) absences = d.absences;
   if (d.sheetUrl){ sheetUrl = d.sheetUrl; $('sheetLink').href = sheetUrl; }
   render();
+  renderAway();
   if (isAuthed() && !$('cab').hidden) renderCab();
 }
 
@@ -837,6 +965,91 @@ function send(payload, done, fail){
       say(old ? OLD_SCRIPT : e.message, true);
       fail && fail(e);
     });
+}
+
+/* ---- отсутствия ---- */
+function today_(){
+  var n = new Date();
+  return new Date(n.getTime() - n.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+}
+function dm_(iso){ return iso ? iso.slice(8,10) + '.' + iso.slice(5,7) : ''; }
+
+function renderAway(){
+  var q = ($('absQ') ? $('absQ').value : '').trim().toLowerCase();
+  var t = today_();
+  var live = absences.filter(function(a){ return a.to >= t; });      // текущие и будущие
+  if (q) live = live.filter(function(a){
+    return (a.person || '').toLowerCase().indexOf(q) > -1 ||
+           (a.type || '').toLowerCase().indexOf(q) > -1;
+  });
+  live.sort(function(a, b){ return a.from.localeCompare(b.from); });
+
+  function draw(box, list, empty){
+    if (!list.length){ box.innerHTML = '<div class="away-none">' + empty + '</div>'; return; }
+    box.innerHTML = list.map(function(a){
+      var now = a.from <= t && a.to >= t;
+      return '<div class="away-row">' +
+        '<div class="nm">' + esc(a.person) + '</div>' +
+        (now ? '<span class="now">сейчас</span>' : '') +
+        '<div class="dt">' + dm_(a.from) + '–' + dm_(a.to) + '</div></div>';
+    }).join('');
+  }
+  var sick = live.filter(function(a){ return a.type === 'Больничный'; });
+  var vac  = live.filter(function(a){ return a.type === 'Отпуск'; });
+  draw($('listSick'), sick, q ? 'ничего не найдено' : 'никого');
+  draw($('listVac'),  vac,  q ? 'ничего не найдено' : 'никого');
+  $('awayCnt').textContent = live.length;
+
+  // свои записи в кабинете
+  var box = $('myAbs');
+  if (!box) return;
+  var mine = absences.filter(function(a){ return isAuthed() && same(a.person, auth.login) && a.to >= t; });
+  box.innerHTML = mine.length ? mine.map(function(a){
+    return '<div class="away-row"><div class="nm">' + esc(a.type) + '</div>' +
+      '<div class="dt">' + dm_(a.from) + '–' + dm_(a.to) + '</div>' +
+      '<button class="x" data-abs="' + esc(a.id) + '" aria-label="Убрать">✕</button></div>';
+  }).join('') : '';
+}
+
+/* ---- расчёт зарплаты ---- */
+function rateKey(){ return 'tabel.rate.' + (auth.login || '-'); }
+function loadRate(){
+  try { return JSON.parse(localStorage.getItem(rateKey())) || {}; } catch(e){ return {}; }
+}
+function saveRate(){
+  try {
+    localStorage.setItem(rateKey(), JSON.stringify({
+      rate: $('rate').value, k: $('kOver').value, ndfl: $('ndfl').value
+    }));
+  } catch(e){}
+}
+function money(n){
+  return Math.round(n).toLocaleString('ru-RU').replace(/\u00A0/g, ' ') + ' ₽';
+}
+
+function renderPay(list){
+  var rate = parseFloat($('rate').value.replace(',', '.')) || 0;
+  var k = parseFloat($('kOver').value.replace(',', '.')) || 1;
+  var ndfl = $('ndfl').value === '1';
+
+  var base = 0, over = 0;
+  list.forEach(function(r){
+    var h = Number(r.hours) || 0;
+    base += Math.min(h, 8);
+    over += Math.max(h - 8, 0);
+  });
+
+  var gross = base * rate + over * rate * k;
+  var sum = ndfl ? gross * 0.87 : gross;
+
+  $('paySum').textContent = rate ? money(sum) : '0 ₽';
+  $('payNote').textContent = !rate ? 'Введите ставку'
+    : (ndfl ? 'на руки после НДФЛ 13%' : 'начислено до вычета НДФЛ');
+  $('payRows').innerHTML =
+    '<div><span>Часы в пределах 8</span><b>' + base.toFixed(2) + ' ч</b></div>' +
+    '<div><span>Часы сверх 8 (×' + k + ')</span><b>' + over.toFixed(2) + ' ч</b></div>' +
+    (rate && ndfl ? '<div><span>Начислено</span><b>' + money(gross) + '</b></div>' : '') +
+    (rate ? '<div><span>Ставка</span><b>' + money(rate) + '/ч</b></div>' : '');
 }
 
 /* ---- динамический свет ----
@@ -1108,6 +1321,9 @@ function renderCab(){
   $('tBarL').textContent = pct + '% от нормы';
   $('tNorm').textContent = 'норма ' + NORM + ' ч';
 
+  renderPay(m);
+  renderAway();
+
   var box = $('cabList');
   box.innerHTML = '';
   if (!m.length){
@@ -1249,6 +1465,30 @@ $('api').addEventListener('change', function(){
 });
 $('lLogin').addEventListener('keydown', function(e){ if (e.key === 'Enter') $('lPass').focus(); });
 
+$('absQ').addEventListener('input', renderAway);
+['rate','kOver','ndfl'].forEach(function(id){
+  $(id).addEventListener('input', function(){ saveRate(); if (isAuthed()) renderCab(); });
+  $(id).addEventListener('change', function(){ saveRate(); if (isAuthed()) renderCab(); });
+});
+
+$('aAdd').addEventListener('click', function(){
+  if (!$('aFrom').value || !$('aTo').value){ say('Укажите обе даты.', true); return; }
+  if ($('aTo').value < $('aFrom').value){ say('Дата «по» раньше даты «с».', true); return; }
+  var b = this; b.disabled = true;
+  send({ action:'absence', login:auth.login, token:auth.token,
+         type:$('aType').value, from:$('aFrom').value, to:$('aTo').value },
+    function(){ say($('aType').value + ' отмечен'); b.disabled = false; },
+    function(){ b.disabled = false; });
+});
+
+$('myAbs').addEventListener('click', function(e){
+  var b = e.target.closest('[data-abs]');
+  if (!b) return;
+  if (!confirm('Убрать эту запись?')) return;
+  send({ action:'absenceDel', login:auth.login, token:auth.token, id:b.dataset.abs },
+       function(){ say('Запись убрана'); });
+});
+
 $('cabOut').addEventListener('click', function(){
   auth = { login:'', token:'' };
   saveAuth(auth);
@@ -1305,6 +1545,8 @@ window.addEventListener('resize', function(){ clearTimeout(window.rz); window.rz
   var now = new Date();
   var iso = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString();
   $('date').value = iso.slice(0, 10);
+  $('aFrom').value = iso.slice(0, 10);
+  $('aTo').value = iso.slice(0, 10);
   $('fMonth').value = iso.slice(0, 7);
   if (isAuthed()) $('person').value = auth.login;
   $('api').value = API_URL;
