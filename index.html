@@ -334,6 +334,37 @@
   .setup .body{margin-top:12px}
   .setup label{display:block;margin:0 0 6px 20px;font-size:12px}
 
+  /* ---------- витрина до входа ---------- */
+  .gate{padding:30px 24px;text-align:center}
+  .gate .tag{margin-bottom:16px}
+  .gate h2{font-size:clamp(26px,4.4vw,34px);font-weight:700;letter-spacing:-.035em;margin:0 0 10px}
+  .gate p{color:var(--dim);font-size:15px;line-height:1.6;margin:0 auto 20px;max-width:42ch}
+  .gate .btn{max-width:280px;margin-left:auto;margin-right:auto}
+  .mini{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:22px;
+        padding-top:20px;border-top:1px solid rgba(255,255,255,.09)}
+  .mini div{display:flex;flex-direction:column;gap:3px}
+  .mini b{font-size:24px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums;
+          background:linear-gradient(180deg,#FFFFFF,#AEB8DA);
+          -webkit-background-clip:text;background-clip:text;color:transparent}
+  .mini span{font-size:11px;color:var(--faint);line-height:1.3}
+
+  .feats{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .feat{padding:16px;border-radius:22px;
+        background:linear-gradient(155deg,rgba(255,255,255,.085),rgba(255,255,255,.028));
+        border:1px solid rgba(255,255,255,.08);
+        backdrop-filter:blur(20px) saturate(170%);-webkit-backdrop-filter:blur(20px) saturate(170%)}
+  .feat svg{width:20px;height:20px;color:var(--accent);margin-bottom:10px}
+  .feat h4{margin:0 0 5px;font-size:14.5px;font-weight:600;letter-spacing:-.02em}
+  .feat p{margin:0;font-size:12.5px;color:var(--dim);line-height:1.5}
+  .how{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:14px 18px;
+       border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07)}
+  .how > span{font-size:12px;color:var(--faint);letter-spacing:.04em;text-transform:uppercase}
+  .how div{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--dim)}
+  .how i{width:20px;height:20px;flex:none;border-radius:50%;display:grid;place-items:center;
+         font-style:normal;font-size:11px;font-weight:700;color:#0B0D14;
+         background:linear-gradient(150deg,var(--accent),var(--accent-2))}
+  html.authed .feats{display:none}
+
   /* ---------- вход обязателен ---------- */
   .gate{padding:28px 22px;text-align:center}
   .gate h2{font-size:24px;font-weight:600;letter-spacing:-.03em;margin:0 0 8px}
@@ -463,6 +494,10 @@
     .wrap{max-width:1120px;display:grid;gap:18px 24px;align-items:start;
           grid-template-columns:minmax(340px,400px) 1fr;
           grid-template-areas:"head head" "stats stats" "side journal"}
+    /* до входа колонка одна и стоит по центру */
+    html:not(.authed) .wrap{max-width:760px;grid-template-columns:1fr;
+          grid-template-areas:"head" "side"}
+    html:not(.authed) .side{position:static;gap:14px}
     header{grid-area:head;padding-bottom:4px}
     h1{font-size:30px}
     .stats{grid-area:stats;overflow-x:visible;flex-wrap:wrap}
@@ -511,10 +546,43 @@
 
   <div class="side">
     <section class="card gate" id="gate">
+      <span class="tag"><i></i><span data-i18n="tagline">Учёт смен для бригады</span></span>
       <h2 data-i18n="gateTitle">Табель личный</h2>
-      <p data-i18n="gateText">Свои смены видите только вы.</p>
+      <p data-i18n="heroLead">Записывайте смены с телефона.</p>
       <button class="btn primary" id="gateBtn" data-i18n="enterCab">Войти в кабинет</button>
+
+      <div class="mini">
+        <div><b>2</b><span data-i18n="s1">смен в день максимум</span></div>
+        <div><b>12</b><span data-i18n="s2">часов предел за сутки</span></div>
+        <div><b>7</b><span data-i18n="s3">секунд до синхронизации</span></div>
+      </div>
     </section>
+
+    <div class="feats" id="feats">
+      <div class="feat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.6"/><path d="M4.5 20a7.5 7.5 0 0115 0"/></svg>
+        <h4 data-i18n="f1t">Личный кабинет</h4><p data-i18n="f1d">Свой табель.</p>
+      </div>
+      <div class="feat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v14H4zM8 9h8M8 13h5"/></svg>
+        <h4 data-i18n="f2t">Расчёт зарплаты</h4><p data-i18n="f2d">Ставка и переработки.</p>
+      </div>
+      <div class="feat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 11h18"/></svg>
+        <h4 data-i18n="f3t">Больничный и отпуск</h4><p data-i18n="f3d">Период отсутствия.</p>
+      </div>
+      <div class="feat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        <h4 data-i18n="f4t">Трудовые нормы</h4><p data-i18n="f4d">Предел за сутки.</p>
+      </div>
+
+      <div class="how">
+        <span data-i18n="howT">Как это работает</span>
+        <div><i>1</i><span data-i18n="how1">Записали смену</span></div>
+        <div><i>2</i><span data-i18n="how2">Строка ушла в таблицу</span></div>
+        <div><i>3</i><span data-i18n="how3">Часы разложились по месяцам</span></div>
+      </div>
+    </div>
 
     <section class="card form">
       <h2 data-i18n="newShift">Новая смена</h2>
@@ -848,8 +916,16 @@ var STR = {
     totalIn:'Всего в табеле', shiftsWord:'смен', tapToEdit:'нажмите на смену, чтобы поправить часы или комментарий.',
     scriptOld:'В таблице развёрнута старая версия code.gs. Обновите скрипт: Deploy → Manage deployments → карандаш → Version: New version.',
     scriptDown:'Скрипт недоступен. Откройте адрес /exec в браузере — там будет точная причина.',
-    scriptDown:t('scriptDown'),
-    urlSaved:'Адрес сохранён, проверяю связь'
+    urlSaved:'Адрес сохранён, проверяю связь',
+    tagline:'Учёт смен для бригады',
+    heroLead:'Записывайте смены с телефона, а часы сами складываются в Google Таблицу. Личный кабинет, расчёт зарплаты и контроль трудовых норм.',
+    f1t:'Личный кабинет', f1d:'Свой табель, своя статистика. Чужие смены недоступны никому.',
+    f2t:'Расчёт зарплаты', f2d:'Ставка, переработки с коэффициентом, вычет налога.',
+    f3t:'Больничный и отпуск', f3d:'Отмечайте период — бригада видит, кто и когда отсутствует.',
+    f4t:'Трудовые нормы', f4d:'Не больше 12 часов в сутки, предупреждения по неделе и году.',
+    s1:'смен в день максимум', s2:'часов предел за сутки', s3:'секунд до синхронизации',
+    howT:'Как это работает', how1:'Записали смену на сайте',
+    how2:'Строка ушла в Google Таблицу', how3:'Часы разложились по месяцам'
   },
   en: {
     title:'Work Hours Timesheet', subtitle:'Shifts are saved to Google Sheets',
@@ -910,7 +986,16 @@ var STR = {
     tapToEdit:'tap a shift to fix its hours or comment.',
     scriptOld:'An old version of code.gs is deployed. Update it: Deploy → Manage deployments → pencil → Version: New version.',
     scriptDown:'The script is unreachable. Open the /exec address in a browser — it will show the exact reason.',
-    urlSaved:'Address saved, checking the connection'
+    urlSaved:'Address saved, checking the connection',
+    tagline:'Shift tracking for small teams',
+    heroLead:'Log shifts from your phone — hours add up in Google Sheets on their own. Personal account, pay calculator and labour-limit checks.',
+    f1t:'Personal account', f1d:'Your own timesheet and stats. Nobody can see anyone else’s shifts.',
+    f2t:'Pay calculator', f2d:'Rate, overtime multiplier, tax deduction.',
+    f3t:'Sick leave and vacation', f3d:'Mark a period — the team sees who is away and when.',
+    f4t:'Labour limits', f4d:'No more than 12 hours a day, weekly and yearly warnings.',
+    s1:'shifts per day maximum', s2:'hours daily limit', s3:'seconds to sync',
+    howT:'How it works', how1:'You log a shift on the site',
+    how2:'The row lands in Google Sheets', how3:'Hours fall into monthly grids'
   }
 };
 // немецкий и испанский пока показываются на английском — словари добавляются сюда же
@@ -1356,9 +1441,6 @@ function saveRate(){
     }));
   } catch(e){}
 }
-function money(n){
-  return Math.round(n).toLocaleString('ru-RU').replace(/\u00A0/g, ' ') + ' ₽';
-}
 
 function renderPay(list){
   var rate = parseFloat($('rate').value.replace(',', '.')) || 0;
@@ -1762,6 +1844,16 @@ $('add').addEventListener('click', function(){
 });
 
 /* кабинет */
+$('selLang').addEventListener('change', function(){ setLang(this.value); });
+$('selTz').addEventListener('change', function(){
+  tz = this.value;
+  try { localStorage.setItem(TZ_KEY, tz); } catch(e){}
+  var day = todayTZ();
+  if (!$('date').value) $('date').value = day;
+  render();
+  if (isAuthed()) renderCab();
+});
+
 $('meBtn').addEventListener('click', openCab);
 $('gateBtn').addEventListener('click', openCab);
 document.addEventListener('click', function(e){
@@ -1916,12 +2008,22 @@ window.addEventListener('resize', function(){ clearTimeout(window.rz); window.rz
 /* ---- запуск ---- */
 (function init(){
   auth = loadAuth();
-  var now = new Date();
-  var iso = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString();
-  $('date').value = iso.slice(0, 10);
-  $('aFrom').value = iso.slice(0, 10);
-  $('aTo').value = iso.slice(0, 10);
-  $('fMonth').value = iso.slice(0, 7);
+
+  try { lang = localStorage.getItem(LANG_KEY) || detectLang(); } catch(e){ lang = detectLang(); }
+  if (!LANGS[lang]) lang = 'ru';
+  try { tz = localStorage.getItem(TZ_KEY) || detectTz(); } catch(e){ tz = detectTz(); }
+
+  $('selLang').innerHTML = Object.keys(LANGS).map(function(k){
+    return '<option value="' + k + '"' + (k === lang ? ' selected' : '') + '>' + LANGS[k].name + '</option>';
+  }).join('');
+  fillTz();
+  applyI18n();
+
+  var day = todayTZ();
+  $('date').value = day;
+  $('aFrom').value = day;
+  $('aTo').value = day;
+  $('fMonth').value = day.slice(0, 7);
   if (isAuthed()) $('person').value = auth.login;
   $('api').value = API_URL;
   setMode('login');
