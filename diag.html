@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Диагностика связи с таблицей</title>
+<style>
+  body{margin:0;background:#0A0B0F;color:#EEF1F6;
+       font:16px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+       padding:28px 16px 60px}
+  .w{max-width:720px;margin:0 auto}
+  h1{font-size:23px;letter-spacing:-.02em;margin:0 0 6px}
+  p.s{color:#8A90A0;font-size:14px;margin:0 0 22px}
+  input,button{font:inherit}
+  input{width:100%;padding:12px 14px;border-radius:10px;border:1px solid #262A33;
+        background:#12141A;color:#EEF1F6;font-size:13px;margin-bottom:10px}
+  button{padding:12px 20px;border-radius:10px;border:0;background:#5B6CFF;color:#fff;
+         font-weight:600;cursor:pointer}
+  button:disabled{opacity:.5}
+  .t{margin-top:20px;border:1px solid #262A33;border-radius:12px;overflow:hidden}
+  .r{display:flex;gap:12px;padding:13px 15px;border-bottom:1px solid #1C1F27;align-items:flex-start}
+  .r:last-child{border-bottom:0}
+  .st{width:22px;flex:none;font-size:15px}
+  .nm{font-weight:600;font-size:14px;margin-bottom:3px}
+  .ds{color:#8A90A0;font-size:13px;word-break:break-word}
+  .ok .nm{color:#3FD79A} .bad .nm{color:#FF5F52} .wait .nm{color:#F5B942}
+  pre{background:#12141A;border:1px solid #262A33;border-radius:10px;padding:12px;
+      font-size:12px;overflow-x:auto;color:#A9B0BF;margin-top:16px;white-space:pre-wrap}
+  .v{margin-top:20px;padding:14px 16px;border-radius:12px;background:#12141A;
+     border:1px solid #262A33;font-size:14px;line-height:1.6}
+  .v b{color:#fff}
+</style>
+</head>
+<body>
+<div class="w">
+  <h1>Диагностика связи с таблицей</h1>
+  <p class="s">Проверяет по очереди все способы достучаться до Apps Script и показывает, на каком шаге рвётся цепочка.</p>
+
+  <input id="url" placeholder="https://script.google.com/macros/s/…/exec">
+  <button id="run">Проверить</button>
+
+  <a id="direct" href="#" target="_blank" rel="noopener"
+     style="display:inline-block;margin-left:10px;padding:12px 20px;border-radius:10px;
+            border:1px solid #262A33;color:#A9B0BF;text-decoration:none;font-weight:600">
+     Открыть адрес напрямую</a>
+
+  <div class="t" id="out"></div>
+  <div class="v" id="verdict" hidden></div>
+  <pre id="log" hidden></pre>
+</div>
+
+<script>
+var DEFAULT_URL = 'https://script.google.com/macros/s/AKfycbxfDhIkoGJaLoG5dB5cfoVnsUQKX-sYVusbL2CtMXyIPFfmu29jz27LgjJMNK0T5sxU/exec';
+document.getElementById('url').value = DEFAULT_URL;
+document.getElementById('direct').href = DEFAULT_URL;
+document.getElementById('url').addEventListener('input', function(){
+  document.getElementById('direct').href = this.value.trim();
+});
+
+var out = document.getElementById('out'), log = document.getElementById('log');
+var verdict = document.getElementById('verdict');
+var res = {};
+
+function row(key, name){
+  var d = document.createElement('div');
+  d.className = 'r wait';
+  d.innerHTML = '<div class="st">…</div><div><div class="nm">' + name + '</div><div class="ds">проверяю</div></div>';
+  d.dataset.k = key;
+  out.appendChild(d);
+  return d;
+}
+function mark(el, ok, text){
+  el.className = 'r ' + (ok ? 'ok' : 'bad');
+  el.querySelector('.st').textContent = ok ? '✓' : '✕';
+  el.querySelector('.ds').textContent = text;
+}
+
+function testFetch(url){
+  var el = row('fetch', 'Обычный запрос (fetch + CORS)');
+  return fetch(url + '?t=' + Date.now())
+    .then(function(r){
+      return r.text().then(function(t){
+        var head = t.trim().charAt(0);
+        if (head === '<'){
+          mark(el, false, 'Вместо данных пришла HTML-страница — вероятно, страница входа Google или заглушка провайдера/VPN');
+          res.fetch = 'html';
+          return;
+        }
+        var d = JSON.parse(t);
+        if (!d.ok) { mark(el, false, 'Скрипт ответил ошибкой: ' + d.error); res.fetch = 'err'; return; }
+        mark(el, true, 'Ответ получен. Версия API: ' + (d.api || 1) + ', смен в таблице: ' + (d.rows || []).length);
+        res.fetch = 'ok';
+        res.api = d.api || 1;
+      });
+    })
+    .catch(function(e){
+      mark(el, false, 'Запрос оборван браузером: ' + e.message);
+      res.fetch = 'blocked';
+    });
+}
+
+function testJsonp(url){
+  var el = row('jsonp', 'Обходной запрос (JSONP, без CORS)');
+  return new Promise(function(resolve){
+    var cb = '__diag' + Date.now();
+    var s = document.createElement('script');
+    var timer = setTimeout(function(){
+      clean();
+      mark(el, false, 'Ответа нет 20 секунд — адрес недоступен из этой сети');
+      res.jsonp = 'timeout';
+      resolve();
+    }, 20000);
+    function clean(){
+      clearTimeout(timer);
+      try { delete window[cb]; } catch(e){ window[cb] = undefined; }
+      if (s.parentNode) s.parentNode.removeChild(s);
+    }
+    window[cb] = function(d){
+      clean();
+      if (!d || !d.ok){
+        mark(el, false, 'Скрипт ответил ошибкой: ' + ((d && d.error) || 'нет данных'));
+        res.jsonp = 'err';
+      } else {
+        mark(el, true, 'Ответ получен. Версия API: ' + (d.api || 1) + ', смен: ' + (d.rows || []).length);
+        res.jsonp = 'ok';
+        res.api = d.api || 1;
+      }
+      resolve();
+    };
+    s.onerror = function(){
+      clean();
+      mark(el, false, 'Тег script не загрузился — домен режется сетью или адрес неверный');
+      res.jsonp = 'blocked';
+      resolve();
+    };
+    s.src = url + '?callback=' + cb + '&t=' + Date.now();
+    document.body.appendChild(s);
+  });
+}
+
+function testGoogle(){
+  var el = row('google', 'Доступность google.com');
+  return new Promise(function(resolve){
+    var img = new Image();
+    var timer = setTimeout(function(){ mark(el, false, 'Нет ответа — интернет или VPN режет Google целиком'); res.google = 'no'; resolve(); }, 8000);
+    img.onload = img.onerror = function(){
+      clearTimeout(timer);
+      mark(el, true, 'Домены Google отвечают');
+      res.google = 'ok';
+      resolve();
+    };
+    img.src = 'https://www.google.com/favicon.ico?t=' + Date.now();
+  });
+}
+
+function conclude(){
+  var v = '';
+  if (res.jsonp === 'ok' && res.fetch !== 'ok'){
+    v = '<b>Сеть режет обычные запросы, но обходной путь работает.</b> Сайт в новой версии переключается на него автоматически — просто обновите index.html на GitHub Pages и откройте с Ctrl+F5.';
+  } else if (res.fetch === 'ok' && res.jsonp === 'ok'){
+    v = '<b>Связь полностью исправна.</b> Скрипт отвечает обоими способами. Если сайт всё равно пишет об ошибке, у вас открыта старая копия страницы — обновите её с Ctrl+F5.';
+  } else if (res.fetch === 'blocked' && (res.jsonp === 'blocked' || res.jsonp === 'timeout')){
+    v = '<b>Сам адрес скрипта недоступен из этой сети.</b> Оба способа не дошли до сервера, ' +
+        'хотя google.com отвечает — значит, дело не в CORS. Возможных причины две: ' +
+        'домен script.google.com режется вашим VPN или провайдером, либо развёртывание удалено ' +
+        'и ссылка ведёт в никуда. Проверьте: откройте адрес кнопкой ниже в новой вкладке. ' +
+        'Если там ошибка Google — пересоздайте развёртывание. Если вкладка не открывается ' +
+        'вовсе — отключите VPN или смените сервер.';
+  } else if (res.google === 'no'){
+    v = '<b>Заблокирован сам Google.</b> Отключите VPN или смените сервер: при закрытом google.com таблица недоступна в принципе.';
+  } else if (res.fetch === 'html' || res.jsonp === 'blocked'){
+    v = '<b>Скрипт отдаёт страницу вместо данных.</b> В развёртывании должно стоять «Execute as: Me» и «Who has access: Anyone», затем Deploy → Manage deployments → карандаш → Version: New version.';
+  } else if (res.fetch === 'err' || res.jsonp === 'err'){
+    v = '<b>Скрипт доступен, но падает внутри.</b> Запустите в редакторе функцию selfTest и посмотрите лог — там будет причина.';
+  } else {
+    v = '<b>Адрес недоступен из этой сети.</b> Проверьте, что ссылка заканчивается на /exec и скопирована из Manage deployments.';
+  }
+  if (res.api && res.api < 3){
+    v += '<br><br><b>Внимание:</b> в таблице развёрнута старая версия code.gs (API ' + res.api +
+         ', нужна 3). Обновите скрипт и поднимите версию развёртывания.';
+  }
+  verdict.innerHTML = v;
+  verdict.hidden = false;
+  log.textContent = 'Итог проверок: ' + JSON.stringify(res, null, 2) +
+                    '\nБраузер: ' + navigator.userAgent;
+  log.hidden = false;
+}
+
+document.getElementById('run').addEventListener('click', function(){
+  var url = document.getElementById('url').value.trim();
+  if (!url) return;
+  this.disabled = true;
+  out.innerHTML = '';
+  verdict.hidden = true;
+  log.hidden = true;
+  res = {};
+  var btn = this;
+  testGoogle()
+    .then(function(){ return testFetch(url); })
+    .then(function(){ return testJsonp(url); })
+    .then(function(){ conclude(); btn.disabled = false; });
+});
+</script>
+</body>
+</html>

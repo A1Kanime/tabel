@@ -617,7 +617,7 @@ function applyAuth(){
 
 function openCab(){
   applyAuth();
-  if (apiVer === 1){
+  if (apiVer && apiVer < 3){
     $('lHint').innerHTML = '<b style="color:#FFB9B3">Скрипт в таблице не обновлён.</b> ' +
       'Вставьте новый code.gs и сделайте Deploy → Manage deployments → карандаш → ' +
       'Version: New version. Вход заработает сразу после этого.';
@@ -675,37 +675,89 @@ function absorb(d){
   if (isAuthed() && !$('cab').hidden) renderCab();
 }
 
-var lastErr = '';
-function parse(r){
-  return r.text().then(function(t){
-    var head = t.replace(/^\uFEFF/, '').trim().charAt(0);
-    if (head === '<')
-      throw new Error('Google отдал страницу входа вместо данных. В развёртывании поставьте ' +
-                      '«Who has access: Anyone» и сделайте New version.');
-    if (head !== '{')
-      throw new Error('Непонятный ответ сервера (HTTP ' + r.status + '). Проверьте адрес /exec.');
-    var d;
-    try { d = JSON.parse(t); } catch(e){ throw new Error('Ответ не читается (HTTP ' + r.status + ')'); }
-    if (!d.ok) throw new Error(d.error || 'Ошибка на стороне скрипта');
-    return d;
+var lastErr = '', mode = 'fetch';     // fetch → при сетевой блокировке переключаемся на jsonp
+var jsonpN = 0;
+
+function netErr(e){
+  // сюда же попадает подменённый ответ: провайдер или VPN отдают HTML вместо данных
+  return /Failed to fetch|NetworkError|Load failed|CORS|network|страницу входа|Непонятный ответ/i
+         .test(e.message || '');
+}
+
+function check(d){
+  if (!d || typeof d !== 'object') throw new Error('Пустой ответ скрипта');
+  if (!d.ok) throw new Error(d.error || 'Ошибка на стороне скрипта');
+  return d;
+}
+
+/* обычный запрос */
+function viaFetch(payload){
+  var opts = payload
+    // text/plain — чтобы браузер не слал preflight, который Apps Script не обрабатывает
+    ? { method:'POST', headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload) }
+    : undefined;
+  var url = API_URL + (payload ? '' : '?t=' + Date.now());
+  return fetch(url, opts).then(function(r){
+    return r.text().then(function(t){
+      var head = t.replace(/^\uFEFF/, '').trim().charAt(0);
+      if (head === '<')
+        throw new Error('Google отдал страницу входа. В развёртывании нужно ' +
+                        '«Execute as: Me» и «Who has access: Anyone», затем New version.');
+      if (head !== '{') throw new Error('Непонятный ответ сервера (HTTP ' + r.status + ')');
+      return check(JSON.parse(t));
+    });
+  });
+}
+
+/* запасной путь: тег <script> не подчиняется правилам CORS */
+function viaJsonp(payload){
+  return new Promise(function(resolve, reject){
+    var cb = '__tabel' + (++jsonpN);
+    var el = document.createElement('script');
+    var timer = setTimeout(function(){ cleanup(); reject(new Error('Скрипт не ответил за 25 секунд')); }, 25000);
+    function cleanup(){
+      clearTimeout(timer);
+      try { delete window[cb]; } catch(e){ window[cb] = undefined; }
+      if (el.parentNode) el.parentNode.removeChild(el);
+    }
+    window[cb] = function(d){
+      cleanup();
+      try { resolve(check(d)); } catch(err){ reject(err); }
+    };
+    el.onerror = function(){
+      cleanup();
+      reject(new Error('Адрес скрипта недоступен. Проверьте ссылку /exec и доступ «Anyone».'));
+    };
+    el.src = API_URL + '?callback=' + cb + '&t=' + Date.now() +
+             (payload ? '&p=' + encodeURIComponent(JSON.stringify(payload)) : '');
+    document.body.appendChild(el);
+  });
+}
+
+function request(payload){
+  if (mode === 'jsonp') return viaJsonp(payload);
+  return viaFetch(payload).catch(function(e){
+    if (!netErr(e)) throw e;
+    mode = 'jsonp';                       // один раз упёрлись в CORS — дальше только jsonp
+    console.warn('fetch заблокирован, перехожу на JSONP');
+    return viaJsonp(payload);
   });
 }
 
 function load(){
   if (navigator.onLine === false) { setState('err', 'нет сети'); return; }
   setState('busy', 'обмен');
-  fetch(API_URL + '?t=' + Date.now())
-    .then(parse)
+  request(null)
     .then(function(d){
       absorb(d);
-      setState('on', 'на связи');
+      setState('on', mode === 'jsonp' ? 'на связи · обход' : 'на связи');
       lastErr = '';
     })
     .catch(function(e){
       setState('err', 'нет связи');
-      var msg = /Failed to fetch|NetworkError|Load failed/i.test(e.message)
-        ? 'Запрос к скрипту не прошёл. Откройте сайт по адресу GitHub Pages — из предпросмотра и локального файла запросы часто блокируются.'
-        : e.message;
+      var msg = netErr(e) ? 'Скрипт недоступен. Откройте адрес /exec в браузере — там будет точная причина.'
+                          : e.message;
       if (msg !== lastErr){ lastErr = msg; say(msg, true); }   // не спамим каждые 7 секунд
       console.error(e);
     });
@@ -713,22 +765,16 @@ function load(){
 
 function send(payload, done, fail){
   setState('busy', 'запись');
-  // text/plain — чтобы браузер не слал preflight, который Apps Script не обрабатывает
-  fetch(API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify(payload)
-  })
-    .then(parse)
+  request(payload)
     .then(function(d){
       absorb(d);
-      setState('on', 'на связи');
+      setState('on', mode === 'jsonp' ? 'на связи · обход' : 'на связи');
       done && done(d);
     })
     .catch(function(e){
       setState('err', 'ошибка');
-      // старый скрипт не знает команд auth/update и отвечает как на добавление смены
-      var old = /дата и сотрудник/i.test(e.message) && payload.action !== 'add';
+      // старый скрипт не знает новых команд и отвечает как на добавление смены
+      var old = /дата и сотрудник|Неизвестная команда/i.test(e.message) && payload.action !== 'add';
       say(old ? OLD_SCRIPT : e.message, true);
       fail && fail(e);
     });
@@ -1077,7 +1123,7 @@ function doLogin(){
   var pass = $('lPass').value;
   if (!login) { say('Введите логин.', true); $('lLogin').focus(); return; }
   if (!pass || pass.length < 4) { say('Пароль от 4 знаков.', true); $('lPass').focus(); return; }
-  if (apiVer === 1) { say(OLD_SCRIPT, true); return; }   // точно знаем, что скрипт старый
+  if (apiVer && apiVer < 3) { say(OLD_SCRIPT, true); return; }   // скрипт точно старый
   $('lGo').disabled = true;
   send({ action:'auth', login:login, pass:pass }, function(d){
     auth = { login:d.login, token:d.token };
