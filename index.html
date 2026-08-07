@@ -174,6 +174,9 @@
               -webkit-background-clip:text;background-clip:text;color:transparent}
   .meter .unit{font-size:17px;color:var(--dim)}
   .meter-cap{font-size:12px;color:var(--faint);letter-spacing:.06em;text-transform:uppercase}
+  .day-note{margin-top:10px;font-size:12.5px;line-height:1.45;padding:8px 14px;border-radius:16px;
+            background:rgba(245,185,66,.10);border:1px solid rgba(245,185,66,.30);color:#F7D191}
+  .day-note.stop{background:rgba(255,95,82,.10);border-color:rgba(255,95,82,.35);color:#FFB9B3}
 
   /* ---------- журнал ---------- */
   .filters{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 4px}
@@ -519,7 +522,8 @@
       </div>
 
       <div class="meter"><span class="big" id="calc">9.00</span><span class="unit">ч</span></div>
-      <div class="meter-cap">часов за смену</div>
+      <div class="meter-cap" id="calcCap">часов за смену</div>
+      <div class="day-note" id="dayNote" hidden></div>
 
       <div class="field submit-row">
         <input class="pill" id="comment" placeholder="Комментарий: объект, вид работ…" enterkeyhint="done">
@@ -743,6 +747,8 @@
 /* ====== Адрес веб-приложения Apps Script (зашит, вводить не нужно) ====== */
 var API_URL = 'https://script.google.com/macros/s/AKfycbxfDhIkoGJaLoG5dB5cfoVnsUQKX-sYVusbL2CtMXyIPFfmu29jz27LgjJMNK0T5sxU/exec';
 var NORM = 160;                       // месячная норма часов для полосы прогресса
+var MAX_DAY_HOURS = 12;               // предел за сутки: 8 ч смена + 4 ч сверхурочных
+var MAX_SHIFTS_PER_DAY = 2;           // те же значения продублированы в code.gs
 /* ======================================================================= */
 
 var AUTH_KEY = 'tabel.auth';
@@ -859,6 +865,7 @@ function absorb(d){
   if (d.sheetUrl){ sheetUrl = d.sheetUrl; $('sheetLink').href = sheetUrl; }
   render();
   renderAway();
+  checkDay();
   if (isAuthed() && !$('cab').hidden) renderCab();
 }
 
@@ -965,6 +972,51 @@ function send(payload, done, fail){
       say(old ? OLD_SCRIPT : e.message, true);
       fail && fail(e);
     });
+}
+
+/* ---- контроль суток ----
+   Те же правила, что и на сервере: он остаётся последней инстанцией,
+   а здесь человек видит превышение до того, как нажмёт кнопку. */
+function dayState(person, date, addHours, skipId){
+  var key = String(person || '').trim().toLowerCase();
+  var day = toISO(date);
+  var same = rows.filter(function(r){
+    return String(r.person).trim().toLowerCase() === key &&
+           toISO(r.date) === day && String(r.id) !== String(skipId || '');
+  });
+  var have = same.reduce(function(a, r){ return a + (Number(r.hours) || 0); }, 0);
+  var total = have + (Number(addHours) || 0);
+  return { count: same.length, have: have, total: total,
+           over: total > MAX_DAY_HOURS, many: same.length >= MAX_SHIFTS_PER_DAY };
+}
+
+function checkDay(){
+  var el = $('dayNote');
+  if (!el) return;
+  var person = $('person').value.trim();
+  var h = hours($('start').value, $('end').value);
+  if (!person || !$('date').value){ el.hidden = true; return; }
+
+  var s = dayState(person, $('date').value, h, null);
+  var msg = '', stop = false;
+
+  if (s.many){
+    msg = 'За этот день уже записано смен: ' + s.count + '. Поправьте существующую.';
+    stop = true;
+  } else if (s.over){
+    msg = 'За сутки выйдет ' + s.total.toFixed(2) + ' ч — больше предела в ' +
+          MAX_DAY_HOURS + ' ч (смена 8 ч плюс до 4 ч сверхурочных).';
+    stop = true;
+  } else if (s.have > 0){
+    msg = 'В этот день уже записано ' + s.have.toFixed(2) + ' ч, станет ' + s.total.toFixed(2) + ' ч.';
+  } else if (h > 8){
+    msg = 'Смена дольше 8 часов — ' + (h - 8).toFixed(2) + ' ч пойдут как сверхурочные.';
+  }
+
+  el.textContent = msg;
+  el.className = 'day-note' + (stop ? ' stop' : '');
+  el.hidden = !msg;
+  $('add').disabled = stop;
 }
 
 /* ---- отсутствия ---- */
@@ -1361,8 +1413,11 @@ function rowClick(e){
 }
 
 /* ---- события ---- */
-$('start').addEventListener('input', refreshMeter);
-$('end').addEventListener('input', refreshMeter);
+function refreshAll(){ refreshMeter(); checkDay(); }
+['start','end','date','person'].forEach(function(id){
+  $(id).addEventListener('input', refreshAll);
+  $(id).addEventListener('change', refreshAll);
+});
 $('fMonth').addEventListener('change', function(){ render(); if (isAuthed()) renderCab(); });
 $('fPerson').addEventListener('change', render);
 $('person').addEventListener('keydown', function(e){ if (e.key === 'Enter') $('comment').focus(); });
@@ -1389,9 +1444,11 @@ $('add').addEventListener('click', function(){
     start:$('start').value, end:$('end').value,
     hours:hours($('start').value, $('end').value),
     comment:$('comment').value.trim()
-  }, function(){
+  }, function(d){
     $('comment').value = '';
     say('Смена записана в таблицу');
+    if (d && d.warn) setTimeout(function(){ say(d.warn, true); }, 3600);
+    checkDay();
   });
   setTimeout(function(){ btn.disabled = false; }, 800);
 });
@@ -1522,6 +1579,14 @@ $('eStart').addEventListener('input', eRecalc);
 $('eEnd').addEventListener('input', eRecalc);
 
 $('eSave').addEventListener('click', function(){
+  var r = rows.filter(function(x){ return String(x.id) === String(editId); })[0];
+  if (r){
+    var s = dayState(r.person, r.date, parseFloat($('eHours').value) || 0, editId);
+    if (s.over){
+      say('За сутки выйдет ' + s.total.toFixed(2) + ' ч — предел ' + MAX_DAY_HOURS + ' ч.', true);
+      return;
+    }
+  }
   send({
     action:'update', login:auth.login, token:auth.token, id:editId,
     start:$('eStart').value, end:$('eEnd').value,
@@ -1555,6 +1620,7 @@ window.addEventListener('resize', function(){ clearTimeout(window.rz); window.rz
   applyDevice();
   refreshMeter();
   render();
+  checkDay();
   load();
 })();
 </script>
