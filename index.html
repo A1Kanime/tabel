@@ -179,7 +179,7 @@
   .day-note.stop{background:rgba(255,95,82,.10);border-color:rgba(255,95,82,.35);color:#FFB9B3}
 
   /* ---------- журнал ---------- */
-  .filters{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 4px}
+  .filters{display:grid;grid-template-columns:1fr;gap:10px;padding:0 4px}
   .filters .pill{min-height:50px}
   .summary{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:18px 24px 12px}
   .summary .lbl{font-size:13px;color:var(--dim)}
@@ -334,6 +334,17 @@
   .setup .body{margin-top:12px}
   .setup label{display:block;margin:0 0 6px 20px;font-size:12px}
 
+  /* ---------- вход обязателен ---------- */
+  .gate{padding:28px 22px;text-align:center}
+  .gate h2{font-size:24px;font-weight:600;letter-spacing:-.03em;margin:0 0 8px}
+  .gate p{color:var(--dim);font-size:14.5px;line-height:1.55;margin:0 0 18px}
+  html.authed .gate{display:none}
+  html:not(.authed) .form,
+  html:not(.authed) .away,
+  html:not(.authed) .stats,
+  html:not(.authed) .journal{display:none}
+  #fPerson{display:none}
+
   /* ---------- кто отсутствует ---------- */
   .away{padding:20px 18px}
   .away-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
@@ -455,7 +466,7 @@
     .stat{flex:1 1 0;min-width:160px}
     .side{grid-area:side;position:sticky;top:32px;display:flex;flex-direction:column;gap:16px}
     .journal{grid-area:journal;display:flex;flex-direction:column;gap:14px}
-    .filters{grid-template-columns:200px 1fr;padding:0}
+    .filters{grid-template-columns:220px;padding:0}
     .cab-in{padding-top:44px}
   }
   @media (min-width:1200px){ h1{font-size:34px} }
@@ -496,6 +507,12 @@
   <div class="stats" id="stats"></div>
 
   <div class="side">
+    <section class="card gate" id="gate">
+      <h2>Табель личный</h2>
+      <p>Свои смены видите только вы. Войдите под своей фамилией — или зарегистрируйтесь, если профиля ещё нет.</p>
+      <button class="btn primary" id="gateBtn">Войти в кабинет</button>
+    </section>
+
     <section class="card form">
       <h2>Новая смена</h2>
       <p>Заполните время — часы посчитаются сами</p>
@@ -802,8 +819,13 @@ function applyAuth(){
   $('loginView').hidden = isAuthed();
   $('cabView').hidden = !isAuthed();
   $('cabTag').textContent = isAuthed() ? 'Личный кабинет' : 'Вход для сотрудников';
-  if (isAuthed()) $('person').value = $('person').value || auth.login;
-  if (isAuthed()) fillRate();
+  if (isAuthed()){
+    $('person').value = auth.login;
+    $('person').disabled = true;              // записать смену можно только на себя
+    fillRate();
+  } else {
+    $('person').disabled = false;
+  }
 }
 
 function openCab(){
@@ -942,7 +964,8 @@ function request(payload){
 function load(){
   if (navigator.onLine === false) { setState('err', 'нет сети'); return; }
   setState('busy', 'обмен');
-  request(null)
+  // читаем с подписью: сервер отдаёт только свои смены
+  request(isAuthed() ? { action:'read', login:auth.login, token:auth.token } : null)
     .then(function(d){
       absorb(d);
       setState('on', mode === 'jsonp' ? 'на связи · обход' : 'на связи');
@@ -1176,18 +1199,14 @@ function agg(list){
 
 function renderStats(list){
   var a = agg(list);
-  function top(m, fix){
-    var k = Object.keys(m).sort(function(x, y){ return m[y] - m[x]; })[0];
-    return k ? { name:k, val: fix ? m[k].toFixed(1) : m[k] } : null;
-  }
-  var th = top(a.byH, true), tc = top(a.byC, false);
+  var pct = Math.round(a.sum / NORM * 100);
+  // всё считается только по своим сменам — чужих данных на странице нет
   var cards = [
-    { k:'cup',   id:'hours',  cap:'Топ часов',     v: th ? th.val : '—', u:'ч',  n: th ? th.name : 'нет данных' },
-    { k:'stack', id:'shifts', cap:'Топ по сменам', v: tc ? tc.val : '—', u:'см', n: tc ? tc.name : 'нет данных' },
-    { k:'clock', id:'',       cap:'Средняя смена', v: a.avg.toFixed(2),  u:'ч',  n:'по всем записям' },
-    { k:'flame', id:'over',   cap:'Переработки',   v: a.over,            u:'см', n:'дольше 8 часов' },
-    { k:'moon',  id:'night',  cap:'Ночные смены',  v: a.night,           u:'см', n:'старт после 20:00' },
-    { k:'users', id:'',       cap:'Сотрудников',   v: Object.keys(a.byC).length, u:'', n:'в периоде' }
+    { k:'cup',   id:'',       cap:'Часов за месяц', v: a.sum.toFixed(1), u:'ч',  n: pct + '% от нормы ' + NORM + ' ч' },
+    { k:'stack', id:'shifts', cap:'Смен за месяц',  v: a.n,              u:'см', n:'в выбранном периоде' },
+    { k:'clock', id:'',       cap:'Средняя смена',  v: a.avg.toFixed(2), u:'ч',  n:'по вашим записям' },
+    { k:'flame', id:'over',   cap:'Переработки',    v: a.over,           u:'см', n:'дольше 8 часов' },
+    { k:'moon',  id:'night',  cap:'Ночные смены',   v: a.night,          u:'см', n:'старт после 20:00' }
   ];
 
   var box = $('stats');
@@ -1318,7 +1337,7 @@ function render(){
   $('fPerson').innerHTML = '<option value="">Все сотрудники</option>' +
     names.map(function(n){ return '<option' + (n === cur ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('');
 
-  var mon = $('fMonth').value, who = $('fPerson').value;
+  var mon = $('fMonth').value, who = '';        // в списке и так только свои смены
   var base = rows.filter(function(r){
     if (mon && toISO(r.date).slice(0,7) !== mon) return false;
     if (who && r.person !== who) return false;
@@ -1437,10 +1456,12 @@ $('add').addEventListener('click', function(){
   if (!person) { say('Укажите сотрудника.', true); $('person').focus(); return; }
   if (!$('date').value) { say('Укажите дату.', true); return; }
   var btn = this;
+  if (!isAuthed()){ say('Войдите в кабинет, чтобы записать смену.', true); openCab(); return; }
   btn.disabled = true;
   if (isTouch && document.activeElement) document.activeElement.blur();
   send({
-    action:'add', date:$('date').value, person:person,
+    action:'add', login:auth.login, token:auth.token,
+    date:$('date').value, person:person,
     start:$('start').value, end:$('end').value,
     hours:hours($('start').value, $('end').value),
     comment:$('comment').value.trim()
@@ -1455,6 +1476,7 @@ $('add').addEventListener('click', function(){
 
 /* кабинет */
 $('meBtn').addEventListener('click', openCab);
+$('gateBtn').addEventListener('click', openCab);
 document.addEventListener('click', function(e){
   if (e.target.closest && e.target.closest('[data-close-cab]')) closeCab();
   if (e.target.closest && e.target.closest('[data-close]')) $('mEdit').hidden = true;
@@ -1549,6 +1571,7 @@ $('myAbs').addEventListener('click', function(e){
 $('cabOut').addEventListener('click', function(){
   auth = { login:'', token:'' };
   saveAuth(auth);
+  rows = []; absences = [];        // на экране не остаётся ничего личного
   applyAuth();
   render();
   say('Вы вышли из кабинета');
