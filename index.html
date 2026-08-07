@@ -159,9 +159,22 @@
   .pill:focus{outline:none;border-color:rgba(255,255,255,.32);background:rgba(255,255,255,.10)}
   .pill:disabled{opacity:.6}
   input[type=date].pill,input[type=time].pill,input[type=month].pill{-webkit-appearance:none;appearance:none;text-align:left}
-  select.pill{appearance:none;-webkit-appearance:none;
+  /* выпадающий список рисует система: задаём его цвета явно,
+     иначе на светлом системном фоне наш белый текст не читается */
+  select.pill{color-scheme:dark;
     background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8'><path d='M1 1l5 5 5-5' stroke='%238A90A0' stroke-width='1.6' fill='none' stroke-linecap='round'/></svg>");
-    background-repeat:no-repeat;background-position:right 20px center;padding-right:44px}
+    background-repeat:no-repeat;background-position:right 20px center;padding-right:44px;
+    appearance:none;-webkit-appearance:none}
+  select.pill option,
+  select.pill optgroup{background-color:#12141C;color:#EDF0F6;font-size:15px;padding:8px}
+  select.pill option:checked{background-color:#2A2F45;color:#FFFFFF}
+  /* полосы прокрутки в тон интерфейсу */
+  *::-webkit-scrollbar{width:10px;height:10px}
+  *::-webkit-scrollbar-track{background:rgba(255,255,255,.03)}
+  *::-webkit-scrollbar-thumb{background:rgba(255,255,255,.16);border-radius:999px;
+    border:2px solid transparent;background-clip:content-box}
+  *::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.28);background-clip:content-box}
+  *{scrollbar-color:rgba(255,255,255,.22) transparent}
   .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
   .submit-row{position:relative;margin-top:14px}
@@ -545,7 +558,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 010 18M12 3a15 15 0 000 18"/></svg>
         <span id="langCode">RU</span>
       </button>
-      <span class="ver" id="ver">v12</span>
+      <span class="ver" id="ver">v13</span>
       <div class="lamp"><span class="dot" id="dot"></span><span id="state">нет связи</span></div>
       <button class="me-btn" id="meBtn" title="Личный кабинет">
         <span class="nm" id="meName">Кабинет</span>
@@ -2036,7 +2049,7 @@ window.addEventListener('resize', function(){ clearTimeout(window.rz); window.rz
 
 /* ---- запуск ---- */
 (function init(){
-  console.log('Табель — сборка v12');
+  console.log('Табель — сборка v13');
   auth = loadAuth();
 
   try { lang = localStorage.getItem(LANG_KEY) || detectLang(); } catch(e){ lang = detectLang(); }
