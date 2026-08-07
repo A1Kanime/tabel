@@ -358,6 +358,22 @@
   .setup .body{margin-top:12px}
   .setup label{display:block;margin:0 0 6px 20px;font-size:12px}
 
+  /* ---------- настройки на главном экране ---------- */
+  .prefs-bar{
+    display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;padding:12px 18px;border-radius:22px;
+    background:linear-gradient(155deg,rgba(255,255,255,.07),rgba(255,255,255,.025));
+    border:1px solid rgba(255,255,255,.08);
+    backdrop-filter:blur(20px) saturate(170%);-webkit-backdrop-filter:blur(20px) saturate(170%);
+  }
+  .pf{display:flex;align-items:center;gap:9px;flex:1 1 240px;min-width:0}
+  .pf svg{width:16px;height:16px;flex:none;color:var(--dim)}
+  .pf label{margin:0;font-size:12.5px;color:var(--dim);white-space:nowrap}
+  .pf .pill{min-height:42px;font-size:14px;flex:1;min-width:0}
+  @media (max-width:430px){
+    .prefs-bar{padding:12px 14px}
+    .pf{flex:1 1 100%}
+  }
+
   /* ---------- витрина до входа ---------- */
   .gate{padding:30px 24px;text-align:center}
   .gate .tag{margin-bottom:16px}
@@ -517,10 +533,11 @@
     body{padding-top:32px}
     .wrap{max-width:1120px;display:grid;gap:18px 24px;align-items:start;
           grid-template-columns:minmax(340px,400px) 1fr;
-          grid-template-areas:"head head" "stats stats" "side journal"}
+          grid-template-areas:"head head" "stats stats" "side journal" "prefs prefs"}
+    .prefs-bar{grid-area:prefs}
     /* до входа колонка одна и стоит по центру */
     html:not(.authed) .wrap{max-width:760px;grid-template-columns:1fr;
-          grid-template-areas:"head" "side"}
+          grid-template-areas:"head" "side" "prefs"}
     html:not(.authed) .side{position:static;gap:14px}
     header{grid-area:head;padding-bottom:4px}
     h1{font-size:30px}
@@ -558,7 +575,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 010 18M12 3a15 15 0 000 18"/></svg>
         <span id="langCode">RU</span>
       </button>
-      <span class="ver" id="ver">v13</span>
+      <span class="ver" id="ver">v14</span>
       <div class="lamp"><span class="dot" id="dot"></span><span id="state">нет связи</span></div>
       <button class="me-btn" id="meBtn" title="Личный кабинет">
         <span class="nm" id="meName">Кабинет</span>
@@ -686,6 +703,18 @@
       <div class="list" id="list"></div>
     </section>
   </div>
+  <section class="prefs-bar">
+    <div class="pf">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 010 18M12 3a15 15 0 000 18"/></svg>
+      <label for="selLang" data-i18n="language">Язык</label>
+      <select class="pill" id="selLang"></select>
+    </div>
+    <div class="pf">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      <label for="selTz" data-i18n="timezone">Часовой пояс</label>
+      <select class="pill" id="selTz"></select>
+    </div>
+  </section>
 </div>
 
 <!-- ================= личный кабинет ================= -->
@@ -814,17 +843,6 @@
 
       <h3 data-i18n="myShifts">Мои смены</h3>
       <div class="cab-list" id="cabList"></div>
-
-      <div class="two prefs">
-        <div class="field">
-          <label for="selLang" data-i18n="language">Язык</label>
-          <select class="pill" id="selLang"></select>
-        </div>
-        <div class="field">
-          <label for="selTz" data-i18n="timezone">Часовой пояс</label>
-          <select class="pill" id="selTz"></select>
-        </div>
-      </div>
 
       <div class="cab-acts">
         <button class="btn primary" id="cabAdd">
@@ -2049,7 +2067,7 @@ window.addEventListener('resize', function(){ clearTimeout(window.rz); window.rz
 
 /* ---- запуск ---- */
 (function init(){
-  console.log('Табель — сборка v13');
+  console.log('Табель — сборка v14');
   auth = loadAuth();
 
   try { lang = localStorage.getItem(LANG_KEY) || detectLang(); } catch(e){ lang = detectLang(); }
