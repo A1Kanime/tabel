@@ -86,6 +86,17 @@
   h1{font-size:24px;font-weight:700;letter-spacing:-.03em;margin:0}
   .sub{color:var(--dim);font-size:13px;margin-top:2px}
   .head-right{display:flex;align-items:center;gap:8px;flex:none}
+  /* метка сборки: видно, свежий ли файл загрузился */
+  .lang-btn{display:flex;align-items:center;gap:6px;height:38px;padding:0 13px;flex:none;
+    border-radius:999px;background:rgba(255,255,255,.05);border:1px solid var(--edge);
+    color:var(--dim);cursor:pointer;font-family:var(--font);font-size:12.5px;font-weight:600;
+    letter-spacing:.03em;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+    transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease),transform .45s var(--ease)}
+  .lang-btn svg{width:15px;height:15px;flex:none}
+  .lang-btn:active{transform:scale(.94)}
+  @media (max-width:430px){ .lang-btn{padding:0 10px} .ver{display:none} }
+  .ver{font-size:11px;color:var(--faint);border:1px solid rgba(255,255,255,.09);
+       border-radius:999px;padding:4px 9px;letter-spacing:.04em;flex:none}
   .lamp{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--dim);
         background:rgba(255,255,255,.05);border:1px solid var(--edge);border-radius:999px;padding:6px 12px;
         backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);white-space:nowrap;flex:none}
@@ -530,6 +541,11 @@
       <div class="sub" data-i18n="subtitle">Смены пишутся в Google Таблицу</div>
     </div>
     <div class="head-right">
+      <button class="lang-btn" id="langBtn" title="Язык / Language">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 010 18M12 3a15 15 0 000 18"/></svg>
+        <span id="langCode">RU</span>
+      </button>
+      <span class="ver" id="ver">v11</span>
       <div class="lamp"><span class="dot" id="dot"></span><span id="state">нет связи</span></div>
       <button class="me-btn" id="meBtn" title="Личный кабинет">
         <span class="nm" id="meName">Кабинет</span>
@@ -1065,12 +1081,23 @@ function applyI18n(){
   });
 }
 
+function langLabel(){
+  var el = $('langCode');
+  if (el) el.textContent = lang.toUpperCase();
+}
+
+function nextLang(){
+  var keys = Object.keys(LANGS);
+  setLang(keys[(keys.indexOf(lang) + 1) % keys.length]);
+}
+
 function setLang(v, keepTz){
   lang = LANGS[v] ? v : 'ru';
   try { localStorage.setItem(LANG_KEY, lang); } catch(e){}
   if (!keepTz){ tz = L().tz; try { localStorage.setItem(TZ_KEY, tz); } catch(e){} }
   if ($('selLang')) $('selLang').value = lang;
   if ($('selTz')) fillTz();
+  langLabel();
   applyI18n();
   render();
   if (isAuthed() && !$('cab').hidden) renderCab();
@@ -1217,12 +1244,12 @@ mqCoarse.addEventListener ? mqCoarse.addEventListener('change', applyDevice) : m
 function setState(k, t){ $('dot').className = 'dot ' + k; $('state').textContent = t; }
 
 function say(text, bad){
-  var t = $('toast');
-  t.textContent = text;
-  t.className = 'toast show' + (bad ? ' bad' : '');
+  var el = $('toast');
+  el.textContent = text;
+  el.className = 'toast show' + (bad ? ' bad' : '');
   if (isTouch && navigator.vibrate) navigator.vibrate(bad ? [40,60,40] : 20);
   clearTimeout(say.t);
-  say.t = setTimeout(function(){ t.className = 'toast' + (bad ? ' bad' : ''); }, 3500);
+  say.t = setTimeout(function(){ el.className = 'toast' + (bad ? ' bad' : ''); }, 3500);
 }
 
 function absorb(d){
@@ -1260,13 +1287,13 @@ function viaFetch(payload){
     : undefined;
   var url = API_URL + (payload ? '' : '?t=' + Date.now());
   return fetch(url, opts).then(function(r){
-    return r.text().then(function(t){
-      var head = t.replace(/^\uFEFF/, '').trim().charAt(0);
+    return r.text().then(function(body){
+      var head = body.replace(/^\uFEFF/, '').trim().charAt(0);
       if (head === '<')
         throw new Error('Google отдал страницу входа. В развёртывании нужно ' +
                         '«Execute as: Me» и «Who has access: Anyone», затем New version.');
       if (head !== '{') throw new Error('Непонятный ответ сервера (HTTP ' + r.status + ')');
-      return check(JSON.parse(t));
+      return check(JSON.parse(body));
     });
   });
 }
@@ -1394,8 +1421,8 @@ function dm_(iso){ return fmtDate(iso); }
 
 function renderAway(){
   var q = ($('absQ') ? $('absQ').value : '').trim().toLowerCase();
-  var t = today_();
-  var live = absences.filter(function(a){ return a.to >= t; });      // текущие и будущие
+  var day = today_();                       // имя t занято функцией перевода
+  var live = absences.filter(function(a){ return a.to >= day; });    // текущие и будущие
   if (q) live = live.filter(function(a){
     return (a.person || '').toLowerCase().indexOf(q) > -1 ||
            (a.type || '').toLowerCase().indexOf(q) > -1;
@@ -1405,7 +1432,7 @@ function renderAway(){
   function draw(box, list, empty){
     if (!list.length){ box.innerHTML = '<div class="away-none">' + empty + '</div>'; return; }
     box.innerHTML = list.map(function(a){
-      var now = a.from <= t && a.to >= t;
+      var now = a.from <= day && a.to >= day;
       return '<div class="away-row">' +
         '<div class="nm">' + esc(a.person) + '</div>' +
         (now ? '<span class="now">' + t('now') + '</span>' : '') +
@@ -1421,7 +1448,7 @@ function renderAway(){
   // свои записи в кабинете
   var box = $('myAbs');
   if (!box) return;
-  var mine = absences.filter(function(a){ return isAuthed() && same(a.person, auth.login) && a.to >= t; });
+  var mine = absences.filter(function(a){ return isAuthed() && same(a.person, auth.login) && a.to >= day; });
   box.innerHTML = mine.length ? mine.map(function(a){
     return '<div class="away-row"><div class="nm">' + esc(a.type) + '</div>' +
       '<div class="dt">' + dm_(a.from) + '–' + dm_(a.to) + '</div>' +
@@ -1844,6 +1871,7 @@ $('add').addEventListener('click', function(){
 });
 
 /* кабинет */
+$('langBtn').addEventListener('click', nextLang);
 $('selLang').addEventListener('change', function(){ setLang(this.value); });
 $('selTz').addEventListener('change', function(){
   tz = this.value;
@@ -2007,6 +2035,7 @@ window.addEventListener('resize', function(){ clearTimeout(window.rz); window.rz
 
 /* ---- запуск ---- */
 (function init(){
+  console.log('Табель — сборка v11');
   auth = loadAuth();
 
   try { lang = localStorage.getItem(LANG_KEY) || detectLang(); } catch(e){ lang = detectLang(); }
@@ -2017,6 +2046,7 @@ window.addEventListener('resize', function(){ clearTimeout(window.rz); window.rz
     return '<option value="' + k + '"' + (k === lang ? ' selected' : '') + '>' + LANGS[k].name + '</option>';
   }).join('');
   fillTz();
+  langLabel();
   applyI18n();
 
   var day = todayTZ();
