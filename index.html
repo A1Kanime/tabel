@@ -87,6 +87,9 @@
   .sub{color:var(--dim);font-size:13px;margin-top:2px}
   .head-right{display:flex;align-items:center;gap:8px;flex:none}
   /* метка сборки: видно, свежий ли файл загрузился */
+  #refreshBtn svg{transform-origin:50% 50%}
+  #refreshBtn.spin svg{animation:spin .9s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
   .lang-btn{display:flex;align-items:center;gap:6px;height:38px;padding:0 13px;flex:none;
     border-radius:999px;background:rgba(255,255,255,.05);border:1px solid var(--edge);
     color:var(--dim);cursor:pointer;font-family:var(--font);font-size:12.5px;font-weight:600;
@@ -574,11 +577,16 @@
       <div class="sub" data-i18n="subtitle">Смены пишутся в Google Таблицу</div>
     </div>
     <div class="head-right">
+      <button class="icon-btn" id="refreshBtn" data-i18n-al="refresh" aria-label="Обновить">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 11a8 8 0 10-2.3 6.3"/><path d="M20 4v7h-7"/>
+        </svg>
+      </button>
       <button class="lang-btn" id="langBtn" title="Язык / Language">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 010 18M12 3a15 15 0 000 18"/></svg>
         <span id="langCode">RU</span>
       </button>
-      <span class="ver" id="ver">v15</span>
+      <span class="ver" id="ver">v16</span>
       <div class="lamp"><span class="dot" id="dot"></span><span id="state">нет связи</span></div>
       <button class="me-btn" id="meBtn" title="Личный кабинет">
         <span class="nm" id="meName">Кабинет</span>
@@ -603,7 +611,7 @@
       <div class="mini">
         <div><b>2</b><span data-i18n="s1">смен в день максимум</span></div>
         <div><b>12</b><span data-i18n="s2">часов предел за сутки</span></div>
-        <div><b>7</b><span data-i18n="s3">секунд до синхронизации</span></div>
+        <div><b id="miniNorm">160</b><span data-i18n="s3">часов месячная норма</span></div>
       </div>
     </section>
 
@@ -973,9 +981,10 @@ var STR = {
     f2t:'Расчёт зарплаты', f2d:'Ставка, переработки с коэффициентом, вычет налога.',
     f3t:'Больничный и отпуск', f3d:'Отмечайте период — бригада видит, кто и когда отсутствует.',
     f4t:'Трудовые нормы', f4d:'Не больше 12 часов в сутки, предупреждения по неделе и году.',
-    s1:'смен в день максимум', s2:'часов предел за сутки', s3:'секунд до синхронизации',
+    s1:'смен в день максимум', s2:'часов предел за сутки', s3:'часов месячная норма',
     howT:'Как это работает', how1:'Записали смену на сайте',
-    how2:'Строка ушла в Google Таблицу', how3:'Часы разложились по месяцам'
+    how2:'Строка ушла в Google Таблицу', how3:'Часы разложились по месяцам',
+    refresh:'Обновить', justNow:'только что', minAgo:'мин назад', hAgo:'ч назад'
   },
   en: {
     title:'Work Hours Timesheet', subtitle:'Shifts are saved to Google Sheets',
@@ -1043,9 +1052,10 @@ var STR = {
     f2t:'Pay calculator', f2d:'Rate, overtime multiplier, tax deduction.',
     f3t:'Sick leave and vacation', f3d:'Mark a period — the team sees who is away and when.',
     f4t:'Labour limits', f4d:'No more than 12 hours a day, weekly and yearly warnings.',
-    s1:'shifts per day maximum', s2:'hours daily limit', s3:'seconds to sync',
+    s1:'shifts per day maximum', s2:'hours daily limit', s3:'hours monthly norm',
     howT:'How it works', how1:'You log a shift on the site',
-    how2:'The row lands in Google Sheets', how3:'Hours fall into monthly grids'
+    how2:'The row lands in Google Sheets', how3:'Hours fall into monthly grids',
+    refresh:'Refresh', justNow:'just now', minAgo:'min ago', hAgo:'h ago'
   }
 };
 // немецкий и испанский пока показываются на английском — словари добавляются сюда же
@@ -1256,8 +1266,6 @@ function applyDevice(){
   isTouch = mqCoarse.matches;
   document.documentElement.classList.toggle('touch', isTouch);
   document.documentElement.classList.toggle('fine', !isTouch);
-  if (timer) clearInterval(timer);
-  timer = setInterval(function(){ if (!document.hidden) load(); }, isTouch ? 15000 : 7000);
 }
 mqCoarse.addEventListener ? mqCoarse.addEventListener('change', applyDevice) : mqCoarse.addListener(applyDevice);
 
@@ -1296,6 +1304,22 @@ function absorb(d){
   renderAway();
   checkDay();
   if (isAuthed() && !$('cab').hidden) renderCab();
+}
+
+var lastSync = 0;
+
+function agoText(){
+  if (!lastSync) return '';
+  var m = Math.floor((Date.now() - lastSync) / 60000);
+  if (m < 1) return t('justNow');
+  if (m < 60) return m + ' ' + t('minAgo');
+  return Math.floor(m / 60) + ' ' + t('hAgo');
+}
+// в шапке видно, насколько свежие данные на экране
+function syncedState(){
+  lastSync = lastSync || Date.now();
+  setState('on', t(mode === 'jsonp' ? 'onlineAlt' : 'online') +
+                 (agoText() ? ' · ' + agoText() : ''));
 }
 
 var lastErr = '', mode = 'fetch';     // fetch → при сетевой блокировке переключаемся на jsonp
@@ -1375,7 +1399,8 @@ function load(){
   request(isAuthed() ? { action:'read', login:auth.login, token:auth.token } : null)
     .then(function(d){
       absorb(d);
-      setState('on', t(mode === 'jsonp' ? 'onlineAlt' : 'online'));
+      lastSync = Date.now();
+      syncedState();
       lastErr = '';
     })
     .catch(function(e){
@@ -1392,7 +1417,8 @@ function send(payload, done, fail){
   request(payload)
     .then(function(d){
       absorb(d);
-      setState('on', t(mode === 'jsonp' ? 'onlineAlt' : 'online'));
+      lastSync = Date.now();
+      syncedState();
       done && done(d);
     })
     .catch(function(e){
@@ -1906,6 +1932,13 @@ $('add').addEventListener('click', function(){
 });
 
 /* кабинет */
+$('refreshBtn').addEventListener('click', function(){
+  var b = this;
+  b.classList.add('spin');
+  load();
+  setTimeout(function(){ b.classList.remove('spin'); }, 900);
+});
+
 $('langBtn').addEventListener('click', nextLang);
 $('selLang').addEventListener('change', function(){ setLang(this.value); });
 $('selTz').addEventListener('change', function(){
@@ -2063,14 +2096,17 @@ $('eDel').addEventListener('click', function(){
        function(){ $('mEdit').hidden = true; say(t('deletedShift')); });
 });
 
-document.addEventListener('visibilitychange', function(){ if (!document.hidden) load(); });
-window.addEventListener('online', load);
+// автоопроса нет: данные тянутся при открытии, после своей записи и по кнопке —
+// не расходуется трафик и журнал не мигает под руками
+window.addEventListener('online', function(){ if (lastSync) syncedState(); });
 window.addEventListener('offline', function(){ setState('err', t('noNet')); });
 window.addEventListener('resize', function(){ clearTimeout(window.rz); window.rz = setTimeout(render, 200); });
 
 /* ---- запуск ---- */
+setInterval(function(){ if (lastSync && $('dot').className.indexOf('on') > -1) syncedState(); }, 60000);
+
 (function init(){
-  console.log('Табель — сборка v15');
+  console.log('Табель — сборка v16');
   auth = loadAuth();
 
   try { lang = localStorage.getItem(LANG_KEY) || detectLang(); } catch(e){ lang = detectLang(); }
@@ -2084,6 +2120,7 @@ window.addEventListener('resize', function(){ clearTimeout(window.rz); window.rz
   langLabel();
   applyI18n();
 
+  if ($('miniNorm')) $('miniNorm').textContent = NORM;
   var day = todayTZ();
   $('date').value = day;
   $('aFrom').value = day;
