@@ -375,14 +375,17 @@
   }
 
   /* ---------- витрина до входа ---------- */
-  .gate{padding:30px 24px;text-align:center}
-  .gate .tag{margin-bottom:16px}
-  .gate h2{font-size:clamp(26px,4.4vw,34px);font-weight:700;letter-spacing:-.035em;margin:0 0 10px}
-  .gate p{color:var(--dim);font-size:15px;line-height:1.6;margin:0 auto 20px;max-width:42ch}
-  .gate .btn{max-width:280px;margin-left:auto;margin-right:auto}
-  .mini{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:22px;
+  /* всё содержимое витрины выстраивается по центру колонкой,
+     чтобы ничто не зависело от наследуемого выравнивания */
+  .gate{padding:30px 24px;display:flex;flex-direction:column;align-items:center;text-align:center}
+  .gate .tag{margin:0 0 16px;align-self:center}
+  .gate h2{font-size:clamp(26px,4.4vw,34px);font-weight:700;letter-spacing:-.035em;
+           margin:0 0 10px;width:100%}
+  .gate p{color:var(--dim);font-size:15px;line-height:1.6;margin:0 0 20px;max-width:44ch}
+  .gate .btn{max-width:280px;width:100%;margin:0}
+  .mini{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:22px;width:100%;
         padding-top:20px;border-top:1px solid rgba(255,255,255,.09)}
-  .mini div{display:flex;flex-direction:column;gap:3px}
+  .mini div{display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center}
   .mini b{font-size:24px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums;
           background:linear-gradient(180deg,#FFFFFF,#AEB8DA);
           -webkit-background-clip:text;background-clip:text;color:transparent}
@@ -575,7 +578,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 010 18M12 3a15 15 0 000 18"/></svg>
         <span id="langCode">RU</span>
       </button>
-      <span class="ver" id="ver">v14</span>
+      <span class="ver" id="ver">v15</span>
       <div class="lamp"><span class="dot" id="dot"></span><span id="state">нет связи</span></div>
       <button class="me-btn" id="meBtn" title="Личный кабинет">
         <span class="nm" id="meName">Кабинет</span>
@@ -2067,7 +2070,7 @@ window.addEventListener('resize', function(){ clearTimeout(window.rz); window.rz
 
 /* ---- запуск ---- */
 (function init(){
-  console.log('Табель — сборка v14');
+  console.log('Табель — сборка v15');
   auth = loadAuth();
 
   try { lang = localStorage.getItem(LANG_KEY) || detectLang(); } catch(e){ lang = detectLang(); }
