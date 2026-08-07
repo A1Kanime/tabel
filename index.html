@@ -397,6 +397,9 @@
 
   @media (max-width:560px){ .pay{grid-template-columns:1fr} }
 
+  .prefs{margin-bottom:18px}
+  .prefs .field{margin:0}
+
   /* ---------- окно правки ---------- */
   .modal{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;padding:18px;
          background:rgba(4,5,8,.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
@@ -488,8 +491,8 @@
 <div class="wrap">
   <header>
     <div>
-      <h1>Табель рабочих часов</h1>
-      <div class="sub">Смены пишутся в Google&nbsp;Таблицу</div>
+      <h1 data-i18n="title">Табель рабочих часов</h1>
+      <div class="sub" data-i18n="subtitle">Смены пишутся в Google Таблицу</div>
     </div>
     <div class="head-right">
       <div class="lamp"><span class="dot" id="dot"></span><span id="state">нет связи</span></div>
@@ -508,59 +511,59 @@
 
   <div class="side">
     <section class="card gate" id="gate">
-      <h2>Табель личный</h2>
-      <p>Свои смены видите только вы. Войдите под своей фамилией — или зарегистрируйтесь, если профиля ещё нет.</p>
-      <button class="btn primary" id="gateBtn">Войти в кабинет</button>
+      <h2 data-i18n="gateTitle">Табель личный</h2>
+      <p data-i18n="gateText">Свои смены видите только вы.</p>
+      <button class="btn primary" id="gateBtn" data-i18n="enterCab">Войти в кабинет</button>
     </section>
 
     <section class="card form">
-      <h2>Новая смена</h2>
-      <p>Заполните время — часы посчитаются сами</p>
+      <h2 data-i18n="newShift">Новая смена</h2>
+      <p data-i18n="fillTime">Заполните время</p>
 
       <div class="field">
-        <label for="person">Сотрудник</label>
-        <input class="pill" id="person" list="people" placeholder="Фамилия И.О."
+        <label for="person" data-i18n="employee">Сотрудник</label>
+        <input class="pill" id="person" list="people" data-i18n-ph="namePh" placeholder="Фамилия И.О."
                autocomplete="off" autocapitalize="words" enterkeyhint="next">
         <datalist id="people"></datalist>
       </div>
       <div class="field">
-        <label for="date">Дата</label>
+        <label for="date" data-i18n="date">Дата</label>
         <input class="pill" type="date" id="date">
       </div>
       <div class="two">
         <div class="field">
-          <label for="start">Начало</label>
+          <label for="start" data-i18n="start">Начало</label>
           <input class="pill" type="time" id="start" value="08:00">
         </div>
         <div class="field">
-          <label for="end">Конец</label>
+          <label for="end" data-i18n="end">Конец</label>
           <input class="pill" type="time" id="end" value="17:00">
         </div>
       </div>
 
       <div class="meter"><span class="big" id="calc">9.00</span><span class="unit">ч</span></div>
-      <div class="meter-cap" id="calcCap">часов за смену</div>
+      <div class="meter-cap" id="calcCap" data-i18n="hoursPerShift">часов за смену</div>
       <div class="day-note" id="dayNote" hidden></div>
 
       <div class="field submit-row">
-        <input class="pill" id="comment" placeholder="Комментарий: объект, вид работ…" enterkeyhint="done">
-        <button class="go" id="add" aria-label="Записать смену">
+        <input class="pill" id="comment" data-i18n-ph="commentPh" placeholder="Комментарий" enterkeyhint="done">
+        <button class="go" id="add" data-i18n-al="writeShift" aria-label="Записать смену">
           <svg viewBox="0 0 24 24" fill="none"><path d="M8 4l8 8-8 8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
       </div>
     </section>
     <section class="card away">
       <div class="away-h">
-        <h3>Кто отсутствует</h3>
+        <h3 data-i18n="whoAway">Кто отсутствует</h3>
         <span class="cnt-pill" id="awayCnt">0</span>
       </div>
-      <input class="pill search" id="absQ" placeholder="Поиск по фамилии" autocomplete="off">
+      <input class="pill search" id="absQ" data-i18n-ph="searchName" placeholder="Поиск по фамилии" autocomplete="off">
       <div class="away-g">
-        <div class="g-lbl"><i class="sick"></i>Больничный</div>
+        <div class="g-lbl"><i class="sick"></i><span data-i18n="sick">Больничный</span></div>
         <div id="listSick"></div>
       </div>
       <div class="away-g">
-        <div class="g-lbl"><i class="vac"></i>Отпуск</div>
+        <div class="g-lbl"><i class="vac"></i><span data-i18n="vacation">Отпуск</span></div>
         <div id="listVac"></div>
       </div>
     </section>
@@ -574,8 +577,8 @@
     <section class="card">
       <div class="summary">
         <div>
-          <div class="lbl">Итого за период</div>
-          <div class="val"><span id="cnt">0</span><span>смен</span></div>
+          <div class="lbl" data-i18n="totalPeriod">Итого за период</div>
+          <div class="val"><span id="cnt">0</span><span data-i18n="shifts">смен</span></div>
           <div class="load" id="load" title="Часов на человека относительно нормы">
             <i></i><span>нагрузка 0%</span>
           </div>
@@ -593,44 +596,44 @@
   <div class="cab-in">
     <div class="cab-top">
       <span class="tag"><i></i><span id="cabTag">Личный кабинет</span></span>
-      <button class="icon-btn" data-close-cab aria-label="Закрыть">✕</button>
+      <button class="icon-btn" data-close-cab data-i18n-al="close" aria-label="Закрыть">✕</button>
     </div>
 
     <!-- вход -->
     <div class="login" id="loginView">
-      <h2 class="display">С <em>возвращением</em></h2>
-      <p class="lead">Войдите под своей фамилией, чтобы видеть личную статистику и править свои смены. Первый вход задаёт пароль.</p>
+      <h2 class="display"><span data-i18n="welcome1">С</span> <em data-i18n="welcome2">возвращением</em></h2>
+      <p class="lead" data-i18n="loginLead">Войдите под своей фамилией.</p>
       <section class="card">
         <div class="tabs" id="tabs">
-          <button class="tab on" data-mode="login">Вход</button>
-          <button class="tab" data-mode="reg">Регистрация</button>
+          <button class="tab on" data-mode="login" data-i18n="signIn">Вход</button>
+          <button class="tab" data-mode="reg" data-i18n="register">Регистрация</button>
         </div>
 
         <div class="field">
-          <label for="lLogin">Логин — фамилия и инициалы</label>
+          <label for="lLogin" data-i18n="loginLabel">Логин</label>
           <input class="pill" id="lLogin" list="people" placeholder="Лямин Н.А."
                  autocomplete="username" autocapitalize="words" enterkeyhint="next">
         </div>
         <div class="field pwrow">
-          <label for="lPass">Пароль</label>
-          <input class="pill" id="lPass" type="password" placeholder="от 4 знаков"
+          <label for="lPass" data-i18n="password">Пароль</label>
+          <input class="pill" id="lPass" type="password" data-i18n-ph="min4" placeholder="от 4 знаков"
                  autocomplete="current-password" enterkeyhint="go">
           <button class="go" id="lGo" aria-label="Продолжить">
             <svg viewBox="0 0 24 24" fill="none"><path d="M8 4l8 8-8 8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
         </div>
         <div class="field" id="rep2" hidden>
-          <label for="lPass2">Повторите пароль</label>
-          <input class="pill" id="lPass2" type="password" placeholder="ещё раз"
+          <label for="lPass2" data-i18n="repeatPass">Повторите пароль</label>
+          <input class="pill" id="lPass2" type="password" data-i18n-ph="again" placeholder="ещё раз"
                  autocomplete="new-password" enterkeyhint="go">
         </div>
         <p class="hint" id="lHint">Пароль хранится в таблице только в виде необратимого хеша — прочитать его нельзя ни в таблице, ни в коде сайта.</p>
       </section>
 
       <details class="setup">
-        <summary>Сайт не видит таблицу?</summary>
+        <summary data-i18n="cantSee">Сайт не видит таблицу?</summary>
         <div class="body">
-          <label for="api">Адрес веб-приложения Apps Script</label>
+          <label for="api" data-i18n="apiUrl">Адрес веб-приложения</label>
           <input class="pill" id="api" type="url" inputmode="url" autocomplete="off"
                  placeholder="https://script.google.com/macros/s/…/exec">
           <p class="hint">Возьмите актуальную ссылку в редакторе скрипта: Deploy → Manage
@@ -641,13 +644,13 @@
 
     <!-- кабинет -->
     <div id="cabView" hidden>
-      <h2 class="display">Привет, <em id="cabName">—</em></h2>
+      <h2 class="display"><span data-i18n="hi">Привет,</span> <em id="cabName">—</em></h2>
       <p class="lead" id="cabLead">Ваши смены за выбранный месяц.</p>
 
       <div class="bento">
         <div class="tile hero">
           <div>
-            <div class="k">Часов за месяц</div>
+            <div class="k" data-i18n="hoursMonth">Часов за месяц</div>
             <div class="b" id="tHours">0.00</div>
           </div>
           <div>
@@ -655,29 +658,29 @@
             <div class="bar-l"><span id="tBarL">0% от нормы</span><span id="tNorm">норма 160 ч</span></div>
           </div>
         </div>
-        <div class="tile"><div class="k">Смен</div><div class="b" id="tShifts">0</div><div class="s">за месяц</div></div>
-        <div class="tile"><div class="k">Средняя смена</div><div class="b" id="tAvg">0.00<span>ч</span></div><div class="s">по вашим записям</div></div>
-        <div class="tile"><div class="k">Переработки</div><div class="b" id="tOver">0</div><div class="s">дольше 8 часов</div></div>
+        <div class="tile"><div class="k" data-i18n="shifts">Смен</div><div class="b" id="tShifts">0</div><div class="s"></div></div>
+        <div class="tile"><div class="k" data-i18n="avgShift">Средняя смена</div><div class="b" id="tAvg">0.00<span>ч</span></div><div class="s" data-i18n="byYourRecords">по вашим записям</div></div>
+        <div class="tile"><div class="k" data-i18n="overtime">Переработки</div><div class="b" id="tOver">0</div><div class="s" data-i18n="longer8">дольше 8 часов</div></div>
         <div class="tile"><div class="k">Ночные</div><div class="b" id="tNight">0</div><div class="s">старт после 20:00</div></div>
       </div>
 
-      <h3>Расчёт зарплаты</h3>
+      <h3 data-i18n="payroll">Расчёт зарплаты</h3>
       <div class="pay">
         <div class="pay-in">
           <div class="field">
-            <label for="rate">Часовая тарифная ставка, ₽</label>
-            <input class="pill" id="rate" type="number" min="0" step="1" inputmode="decimal" placeholder="например 350">
+            <label for="rate" data-i18n="rate">Ставка</label>
+            <input class="pill" id="rate" type="number" min="0" step="1" inputmode="decimal" data-i18n-ph="ratePh" placeholder="например 350">
           </div>
           <div class="two">
             <div class="field">
-              <label for="kOver">Коэффициент за часы сверх 8</label>
+              <label for="kOver" data-i18n="kOver">Коэффициент</label>
               <input class="pill" id="kOver" type="number" min="1" step="0.1" value="1">
             </div>
             <div class="field">
-              <label for="ndfl">Вычесть НДФЛ 13%</label>
+              <label for="ndfl" data-i18n="ndfl">Вычесть налог</label>
               <select class="pill" id="ndfl">
-                <option value="0">Нет, показать начисление</option>
-                <option value="1">Да, показать на руки</option>
+                <option value="0" data-i18n="ndflNo">Нет</option>
+                <option value="1" data-i18n="ndflYes">Да</option>
               </select>
             </div>
           </div>
@@ -689,45 +692,56 @@
         </div>
       </div>
 
-      <h3>Больничный и отпуск</h3>
+      <h3 data-i18n="absTitle">Больничный и отпуск</h3>
       <div class="abs-form">
         <div class="two">
           <div class="field">
-            <label for="aType">Тип</label>
+            <label for="aType" data-i18n="type">Тип</label>
             <select class="pill" id="aType">
-              <option>Больничный</option>
-              <option>Отпуск</option>
+              <option value="Больничный" data-i18n="sick">Больничный</option>
+              <option value="Отпуск" data-i18n="vacation">Отпуск</option>
             </select>
           </div>
           <div class="field">
-            <label for="aFrom">С какого</label>
+            <label for="aFrom" data-i18n="from">С какого</label>
             <input class="pill" type="date" id="aFrom">
           </div>
         </div>
         <div class="field">
-          <label for="aTo">По какое включительно</label>
+          <label for="aTo" data-i18n="to">По какое</label>
           <input class="pill" type="date" id="aTo">
         </div>
-        <button class="btn" id="aAdd">Отметить отсутствие</button>
+        <button class="btn" id="aAdd" data-i18n="markAbs">Отметить отсутствие</button>
         <div id="myAbs" class="my-abs"></div>
       </div>
 
-      <h3>Мои смены</h3>
+      <h3 data-i18n="myShifts">Мои смены</h3>
       <div class="cab-list" id="cabList"></div>
+
+      <div class="two prefs">
+        <div class="field">
+          <label for="selLang" data-i18n="language">Язык</label>
+          <select class="pill" id="selLang"></select>
+        </div>
+        <div class="field">
+          <label for="selTz" data-i18n="timezone">Часовой пояс</label>
+          <select class="pill" id="selTz"></select>
+        </div>
+      </div>
 
       <div class="cab-acts">
         <button class="btn primary" id="cabAdd">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-          Записать смену
+          <span data-i18n="writeShift">Записать смену</span>
         </button>
         <a class="btn" id="sheetLink" href="#" target="_blank" rel="noopener">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M14 3h7v7M21 3l-9 9M20 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2h5"/>
           </svg>
-          Открыть таблицу
+          <span data-i18n="openSheet">Открыть таблицу</span>
         </a>
-        <button class="btn ghost" id="cabPass">Сменить пароль</button>
-        <button class="btn ghost" id="cabOut">Выйти</button>
+        <button class="btn ghost" id="cabPass" data-i18n="changePass">Сменить пароль</button>
+        <button class="btn ghost" id="cabOut" data-i18n="signOut">Выйти</button>
       </div>
     </div>
   </div>
@@ -741,19 +755,19 @@
       <button class="icon-btn" data-close aria-label="Закрыть">✕</button>
     </div>
     <div class="two">
-      <div class="field"><label for="eStart">Начало</label><input class="pill" type="time" id="eStart"></div>
-      <div class="field"><label for="eEnd">Конец</label><input class="pill" type="time" id="eEnd"></div>
+      <div class="field"><label for="eStart" data-i18n="start">Начало</label><input class="pill" type="time" id="eStart"></div>
+      <div class="field"><label for="eEnd" data-i18n="end">Конец</label><input class="pill" type="time" id="eEnd"></div>
     </div>
     <div class="field">
-      <label for="eHours">Часы</label>
+      <label for="eHours" data-i18n="hours">Часы</label>
       <input class="pill" type="number" id="eHours" step="0.25" min="0" max="24" inputmode="decimal">
     </div>
     <div class="field">
-      <label for="eComment">Комментарий</label>
-      <input class="pill" id="eComment" placeholder="Объект, вид работ…">
+      <label for="eComment" data-i18n="comment">Комментарий</label>
+      <input class="pill" id="eComment" data-i18n-ph="objectPh" placeholder="Объект">
     </div>
-    <button class="btn primary" id="eSave">Сохранить</button>
-    <button class="btn danger" id="eDel">Удалить смену</button>
+    <button class="btn primary" id="eSave" data-i18n="save">Сохранить</button>
+    <button class="btn danger" id="eDel" data-i18n="delShift">Удалить смену</button>
   </div>
 </div>
 
@@ -768,10 +782,256 @@ var MAX_DAY_HOURS = 12;               // предел за сутки: 8 ч см
 var MAX_SHIFTS_PER_DAY = 2;           // те же значения продублированы в code.gs
 /* ======================================================================= */
 
+/* ================= языки и часовой пояс ================= */
+var LANGS = {
+  ru: { name:'Русский',  locale:'ru-RU', cur:'RUB', tz:'Europe/Moscow' },
+  en: { name:'English',  locale:'en-US', cur:'USD', tz:'America/New_York' },
+  de: { name:'Deutsch',  locale:'de-DE', cur:'EUR', tz:'Europe/Berlin' },
+  es: { name:'Español',  locale:'es-ES', cur:'EUR', tz:'Europe/Madrid' }
+};
+
+var STR = {
+  ru: {
+    title:'Табель рабочих часов', subtitle:'Смены пишутся в Google Таблицу',
+    cabinet:'Кабинет', personalCab:'Личный кабинет', staffLogin:'Вход для сотрудников',
+    newShift:'Новая смена', fillTime:'Заполните время — часы посчитаются сами',
+    employee:'Сотрудник', date:'Дата', start:'Начало', end:'Конец',
+    comment:'Комментарий', commentPh:'Комментарий: объект, вид работ…',
+    objectPh:'Объект, вид работ…', namePh:'Фамилия И.О.',
+    hoursPerShift:'часов за смену', writeShift:'Записать смену',
+    totalPeriod:'Итого за период', shifts:'смен', h:'ч', sh:'см',
+    empty:'Пока пусто. Запишите первую смену — она появится здесь и в таблице.',
+    noneThisMonth:'За этот месяц смен нет.',
+    whoAway:'Кто отсутствует', sick:'Больничный', vacation:'Отпуск',
+    searchName:'Поиск по фамилии', nobody:'никого', notFound:'ничего не найдено', now:'сейчас',
+    topHours:'Топ часов', topShifts:'Топ по сменам', avgShift:'Средняя смена',
+    overtime:'Переработки', longer8:'дольше 8 часов', byYourRecords:'по вашим записям',
+    noData:'нет данных', load:'нагрузка',
+    welcome1:'С', welcome2:'возвращением',
+    loginLead:'Войдите под своей фамилией, чтобы видеть личную статистику и править свои смены.',
+    signIn:'Вход', register:'Регистрация', loginLabel:'Логин — фамилия и инициалы',
+    password:'Пароль', repeatPass:'Повторите пароль', min4:'от 4 знаков', again:'ещё раз',
+    hintHash:'Пароль хранится в таблице только в виде необратимого хеша — прочитать его нельзя.',
+    hintReg:'Придумайте пароль — логин закрепится за ним. Фамилию пишите так же, как её пишут в табеле.',
+    cantSee:'Сайт не видит таблицу?', apiUrl:'Адрес веб-приложения Apps Script',
+    apiHint:'Возьмите ссылку в редакторе скрипта: Deploy → Manage deployments → Web app URL.',
+    gateTitle:'Табель личный',
+    gateText:'Свои смены видите только вы. Войдите под своей фамилией — или зарегистрируйтесь, если профиля ещё нет.',
+    enterCab:'Войти в кабинет', hi:'Привет,',
+    hoursMonth:'Часов за месяц', norm:'норма', pctNorm:'% от нормы',
+    myShifts:'Мои смены', payroll:'Расчёт зарплаты', rate:'Часовая тарифная ставка',
+    ratePh:'например 350', kOver:'Коэффициент за часы сверх 8',
+    ndfl:'Вычесть налог 13%', ndflNo:'Нет, показать начисление', ndflYes:'Да, показать на руки',
+    enterRate:'Введите ставку', gross:'начислено до вычета налога', net:'на руки после налога 13%',
+    within8:'Часы в пределах 8', over8:'Часы сверх 8', accrued:'Начислено', rateRow:'Ставка',
+    absTitle:'Больничный и отпуск', type:'Тип', from:'С какого', to:'По какое включительно',
+    markAbs:'Отметить отсутствие', save:'Сохранить', delShift:'Удалить смену',
+    changePass:'Сменить пароль', signOut:'Выйти', openSheet:'Открыть таблицу',
+    close:'Закрыть', shift:'Смена', hours:'Часы', language:'Язык', timezone:'Часовой пояс',
+    online:'на связи', onlineAlt:'на связи · обход', exchange:'обмен', writing:'запись',
+    noLink:'нет связи', noNet:'нет сети', errorS:'ошибка',
+    savedShift:'Смена записана в таблицу', changedShift:'Смена изменена',
+    deletedShift:'Смена удалена', absAdded:'отмечен', absRemoved:'Запись убрана',
+    signedIn:'Вы вошли', signedOut:'Вы вышли из кабинета', created:'Профиль создан',
+    passChanged:'Пароль изменён',
+    needLogin:'Введите логин.', needPass:'Пароль от 4 знаков.', passMismatch:'Пароли не совпадают.',
+    needEmployee:'Укажите сотрудника.', needDate:'Укажите дату.',
+    needBothDates:'Укажите обе даты.', badRange:'Дата «по» раньше даты «с».',
+    needAuthAdd:'Войдите в кабинет, чтобы записать смену.',
+    confirmDelShift:'Удалить эту смену?', confirmDelAbs:'Убрать эту запись?',
+    newPassPrompt:'Новый пароль (от 4 знаков):', noId:'У этой строки нет id — правьте её в таблице.',
+    dayHas:'В этот день уже записано', willBe:'станет',
+    dayOver:'За сутки выйдет', overLimit:'больше предела в',
+    limitNote:'(смена 8 ч плюс до 4 ч сверхурочных).',
+    dayMany:'За этот день уже записано смен:', fixExisting:'Поправьте существующую.',
+    asOvertime:'пойдут как сверхурочные.', shiftLonger:'Смена дольше 8 часов —',
+    totalIn:'Всего в табеле', shiftsWord:'смен', tapToEdit:'нажмите на смену, чтобы поправить часы или комментарий.',
+    scriptOld:'В таблице развёрнута старая версия code.gs. Обновите скрипт: Deploy → Manage deployments → карандаш → Version: New version.',
+    scriptDown:'Скрипт недоступен. Откройте адрес /exec в браузере — там будет точная причина.',
+    scriptDown:t('scriptDown'),
+    urlSaved:'Адрес сохранён, проверяю связь'
+  },
+  en: {
+    title:'Work Hours Timesheet', subtitle:'Shifts are saved to Google Sheets',
+    cabinet:'Account', personalCab:'Personal account', staffLogin:'Staff sign-in',
+    newShift:'New shift', fillTime:'Enter the times — hours are calculated for you',
+    employee:'Employee', date:'Date', start:'Start', end:'End',
+    comment:'Comment', commentPh:'Comment: site, type of work…',
+    objectPh:'Site, type of work…', namePh:'Surname F.M.',
+    hoursPerShift:'hours in shift', writeShift:'Save shift',
+    totalPeriod:'Total for period', shifts:'shifts', h:'h', sh:'sh',
+    empty:'Nothing yet. Save your first shift — it will appear here and in the sheet.',
+    noneThisMonth:'No shifts this month.',
+    whoAway:'Who is away', sick:'Sick leave', vacation:'Vacation',
+    searchName:'Search by name', nobody:'nobody', notFound:'nothing found', now:'now',
+    topHours:'Top hours', topShifts:'Top shifts', avgShift:'Average shift',
+    overtime:'Overtime', longer8:'longer than 8 hours', byYourRecords:'from your records',
+    noData:'no data', load:'workload',
+    welcome1:'Welcome', welcome2:'back',
+    loginLead:'Sign in with your name to see your own stats and edit your shifts.',
+    signIn:'Sign in', register:'Register', loginLabel:'Login — surname and initials',
+    password:'Password', repeatPass:'Repeat password', min4:'4+ characters', again:'once more',
+    hintHash:'The password is stored only as an irreversible hash — it cannot be read anywhere.',
+    hintReg:'Choose a password — the login will be bound to it. Spell your name as it appears in the timesheet.',
+    cantSee:'Site cannot reach the sheet?', apiUrl:'Apps Script web app URL',
+    apiHint:'Take the link in the script editor: Deploy → Manage deployments → Web app URL.',
+    gateTitle:'Your timesheet is private',
+    gateText:'Only you can see your shifts. Sign in with your name — or register if you have no profile yet.',
+    enterCab:'Sign in', hi:'Hi,',
+    hoursMonth:'Hours this month', norm:'norm', pctNorm:'% of norm',
+    myShifts:'My shifts', payroll:'Pay calculator', rate:'Hourly rate',
+    ratePh:'e.g. 25', kOver:'Multiplier for hours over 8',
+    ndfl:'Deduct 13% tax', ndflNo:'No, show gross', ndflYes:'Yes, show take-home',
+    enterRate:'Enter the rate', gross:'gross, before tax', net:'take-home after 13% tax',
+    within8:'Hours within 8', over8:'Hours over 8', accrued:'Gross', rateRow:'Rate',
+    absTitle:'Sick leave and vacation', type:'Type', from:'From', to:'Through (inclusive)',
+    markAbs:'Mark absence', save:'Save', delShift:'Delete shift',
+    changePass:'Change password', signOut:'Sign out', openSheet:'Open the sheet',
+    close:'Close', shift:'Shift', hours:'Hours', language:'Language', timezone:'Time zone',
+    online:'connected', onlineAlt:'connected · fallback', exchange:'syncing', writing:'saving',
+    noLink:'no connection', noNet:'offline', errorS:'error',
+    savedShift:'Shift saved to the sheet', changedShift:'Shift updated',
+    deletedShift:'Shift deleted', absAdded:'recorded', absRemoved:'Entry removed',
+    signedIn:'Signed in', signedOut:'Signed out', created:'Profile created',
+    passChanged:'Password changed',
+    needLogin:'Enter your login.', needPass:'Password must be 4+ characters.',
+    passMismatch:'Passwords do not match.',
+    needEmployee:'Enter the employee.', needDate:'Enter the date.',
+    needBothDates:'Enter both dates.', badRange:'End date is earlier than start date.',
+    needAuthAdd:'Sign in to save a shift.',
+    confirmDelShift:'Delete this shift?', confirmDelAbs:'Remove this entry?',
+    newPassPrompt:'New password (4+ characters):', noId:'This row has no id — edit it in the sheet.',
+    dayHas:'This day already has', willBe:'total will be',
+    dayOver:'The day would total', overLimit:'over the limit of',
+    limitNote:'(8-hour shift plus up to 4 hours of overtime).',
+    dayMany:'Shifts already recorded for this day:', fixExisting:'Edit the existing one.',
+    asOvertime:'count as overtime.', shiftLonger:'Shift longer than 8 hours —',
+    totalIn:'Total in the timesheet:', shiftsWord:'shifts',
+    tapToEdit:'tap a shift to fix its hours or comment.',
+    scriptOld:'An old version of code.gs is deployed. Update it: Deploy → Manage deployments → pencil → Version: New version.',
+    scriptDown:'The script is unreachable. Open the /exec address in a browser — it will show the exact reason.',
+    urlSaved:'Address saved, checking the connection'
+  }
+};
+// немецкий и испанский пока показываются на английском — словари добавляются сюда же
+STR.de = STR.en;
+STR.es = STR.en;
+
+var LANG_KEY = 'tabel.lang', TZ_KEY = 'tabel.tz';
+var lang = 'ru', tz = 'Europe/Moscow';
+
+function L(){ return LANGS[lang] || LANGS.ru; }
+function t(k, vars){
+  var s = (STR[lang] && STR[lang][k]) || STR.ru[k] || k;
+  if (vars) Object.keys(vars).forEach(function(v){ s = s.replace('{' + v + '}', vars[v]); });
+  return s;
+}
+
+function detectLang(){
+  var n = (navigator.language || 'ru').slice(0, 2).toLowerCase();
+  return LANGS[n] ? n : 'en';
+}
+function detectTz(){
+  try { return Intl.DateTimeFormat().resolvedOptions().timeZone || L().tz; }
+  catch(e){ return L().tz; }
+}
+
+/* дата «сегодня» в выбранном поясе, а не в поясе компьютера */
+function todayTZ(){
+  try {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: tz, year:'numeric', month:'2-digit', day:'2-digit' })
+      .format(new Date());
+  } catch(e){
+    var n = new Date();
+    return new Date(n.getTime() - n.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  }
+}
+function monthName(m){                                   // 1..12 → название на выбранном языке
+  var d = new Date(2020, m - 1, 15);
+  var s = new Intl.DateTimeFormat(L().locale, { month:'long' }).format(d);
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+function fmtDate(iso, full){
+  if (!iso) return '';
+  var o = { day:'2-digit', month:'2-digit' };
+  if (full) o.year = 'numeric';
+  try { return new Intl.DateTimeFormat(L().locale, o).format(new Date(iso + 'T12:00:00')); }
+  catch(e){ return iso; }
+}
+function money(n){
+  try {
+    return new Intl.NumberFormat(L().locale, { style:'currency', currency:L().cur, maximumFractionDigits:0 })
+      .format(Math.round(n));
+  } catch(e){ return Math.round(n) + ''; }
+}
+
+function applyI18n(){
+  document.documentElement.lang = lang;
+  document.title = t('title');
+  [].forEach.call(document.querySelectorAll('[data-i18n]'), function(el){
+    el.textContent = t(el.dataset.i18n);
+  });
+  [].forEach.call(document.querySelectorAll('[data-i18n-ph]'), function(el){
+    el.placeholder = t(el.dataset.i18nPh);
+  });
+  [].forEach.call(document.querySelectorAll('[data-i18n-al]'), function(el){
+    el.setAttribute('aria-label', t(el.dataset.i18nAl));
+    el.title = t(el.dataset.i18nAl);
+  });
+}
+
+function setLang(v, keepTz){
+  lang = LANGS[v] ? v : 'ru';
+  try { localStorage.setItem(LANG_KEY, lang); } catch(e){}
+  if (!keepTz){ tz = L().tz; try { localStorage.setItem(TZ_KEY, tz); } catch(e){} }
+  if ($('selLang')) $('selLang').value = lang;
+  if ($('selTz')) fillTz();
+  applyI18n();
+  render();
+  if (isAuthed() && !$('cab').hidden) renderCab();
+}
+
+var TZ_LIST = ['Europe/Kaliningrad','Europe/Moscow','Europe/Samara','Asia/Yekaterinburg',
+  'Asia/Omsk','Asia/Krasnoyarsk','Asia/Irkutsk','Asia/Yakutsk','Asia/Vladivostok',
+  'Asia/Magadan','Asia/Kamchatka','Europe/Kyiv','Europe/Minsk','Asia/Almaty','Asia/Tashkent',
+  'Europe/London','Europe/Berlin','Europe/Madrid','Europe/Warsaw','Europe/Istanbul',
+  'Asia/Dubai','Asia/Kolkata','Asia/Shanghai','Asia/Tokyo','Australia/Sydney',
+  'America/New_York','America/Chicago','America/Denver','America/Los_Angeles','America/Sao_Paulo','UTC'];
+
+function tzOffset(zone){
+  try {
+    var s = new Intl.DateTimeFormat('en-US', { timeZone: zone, timeZoneName:'shortOffset' })
+      .formatToParts(new Date()).filter(function(p){ return p.type === 'timeZoneName'; })[0];
+    return s ? s.value.replace('GMT', 'UTC') : '';
+  } catch(e){ return ''; }
+}
+function fillTz(){
+  var list = TZ_LIST.slice();
+  if (list.indexOf(tz) < 0) list.unshift(tz);
+  $('selTz').innerHTML = list.map(function(z){
+    var off = tzOffset(z);
+    return '<option value="' + z + '"' + (z === tz ? ' selected' : '') + '>' +
+           z.replace(/_/g, ' ') + (off ? ' · ' + off : '') + '</option>';
+  }).join('');
+}
+
 var AUTH_KEY = 'tabel.auth';
 var URL_KEY  = 'tabel.apiUrl';
 var authMode = 'login';           // login | reg
 var rows = [], absences = [], timer = null, statFilter = '', sheetUrl = '', editId = '', apiVer = 0;
+// сервер отвечает по-русски: типовые сообщения переводим под выбранный язык
+var SRV = [
+  [/Войдите в кабинет|Войдите в личный кабинет/i, 'needAuthAdd'],
+  [/Неверный пароль|Пароль от 4 знаков/i, 'needPass'],
+  [/Укажите обе даты|Укажите логин/i, 'needBothDates'],
+  [/Нужна дата/i, 'needDate']
+];
+function srvMsg(m){
+  if (lang === 'ru') return m;
+  for (var i = 0; i < SRV.length; i++) if (SRV[i][0].test(m)) return t(SRV[i][1]);
+  return m;
+}
+
 var OLD_SCRIPT = 'В таблице развёрнута старая версия code.gs. Обновите скрипт: ' +
                  'Deploy → Manage deployments → карандаш → Version: New version.';
 var auth = { login: '', token: '' };
@@ -812,13 +1072,13 @@ function fillRate(){
 
 function applyAuth(){
   document.documentElement.classList.toggle('authed', isAuthed());
-  $('meName').textContent = isAuthed() ? auth.login : 'Кабинет';
+  $('meName').textContent = isAuthed() ? auth.login : t('cabinet');
   $('meAv').innerHTML = isAuthed() ? initials(auth.login) :
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:14px;height:14px">' +
     '<circle cx="12" cy="8.5" r="3.6"/><path d="M4.5 20a7.5 7.5 0 0115 0"/></svg>';
   $('loginView').hidden = isAuthed();
   $('cabView').hidden = !isAuthed();
-  $('cabTag').textContent = isAuthed() ? 'Личный кабинет' : 'Вход для сотрудников';
+  $('cabTag').textContent = t(isAuthed() ? 'personalCab' : 'staffLogin');
   if (isAuthed()){
     $('person').value = auth.login;
     $('person').disabled = true;              // записать смену можно только на себя
@@ -962,37 +1222,37 @@ function request(payload){
 }
 
 function load(){
-  if (navigator.onLine === false) { setState('err', 'нет сети'); return; }
-  setState('busy', 'обмен');
+  if (navigator.onLine === false) { setState('err', t('noNet')); return; }
+  setState('busy', t('exchange'));
   // читаем с подписью: сервер отдаёт только свои смены
   request(isAuthed() ? { action:'read', login:auth.login, token:auth.token } : null)
     .then(function(d){
       absorb(d);
-      setState('on', mode === 'jsonp' ? 'на связи · обход' : 'на связи');
+      setState('on', t(mode === 'jsonp' ? 'onlineAlt' : 'online'));
       lastErr = '';
     })
     .catch(function(e){
-      setState('err', 'нет связи');
+      setState('err', t('noLink'));
       var msg = netErr(e) ? 'Скрипт недоступен. Откройте адрес /exec в браузере — там будет точная причина.'
                           : e.message;
-      if (msg !== lastErr){ lastErr = msg; say(msg, true); }   // не спамим каждые 7 секунд
+      if (msg !== lastErr){ lastErr = msg; say(srvMsg(msg), true); }   // не спамим каждые 7 секунд
       console.error(e);
     });
 }
 
 function send(payload, done, fail){
-  setState('busy', 'запись');
+  setState('busy', t('writing'));
   request(payload)
     .then(function(d){
       absorb(d);
-      setState('on', mode === 'jsonp' ? 'на связи · обход' : 'на связи');
+      setState('on', t(mode === 'jsonp' ? 'onlineAlt' : 'online'));
       done && done(d);
     })
     .catch(function(e){
-      setState('err', 'ошибка');
+      setState('err', t('errorS'));
       // старый скрипт не знает новых команд и отвечает как на добавление смены
       var old = /дата и сотрудник|Неизвестная команда/i.test(e.message) && payload.action !== 'add';
-      say(old ? OLD_SCRIPT : e.message, true);
+      say(old ? t('scriptOld') : srvMsg(e.message), true);
       fail && fail(e);
     });
 }
@@ -1024,16 +1284,17 @@ function checkDay(){
   var msg = '', stop = false;
 
   if (s.many){
-    msg = 'За этот день уже записано смен: ' + s.count + '. Поправьте существующую.';
+    msg = t('dayMany') + ' ' + s.count + '. ' + t('fixExisting');
     stop = true;
   } else if (s.over){
-    msg = 'За сутки выйдет ' + s.total.toFixed(2) + ' ч — больше предела в ' +
-          MAX_DAY_HOURS + ' ч (смена 8 ч плюс до 4 ч сверхурочных).';
+    msg = t('dayOver') + ' ' + s.total.toFixed(2) + ' ' + t('h') + ' — ' + t('overLimit') + ' ' +
+          MAX_DAY_HOURS + ' ' + t('h') + ' ' + t('limitNote');
     stop = true;
   } else if (s.have > 0){
-    msg = 'В этот день уже записано ' + s.have.toFixed(2) + ' ч, станет ' + s.total.toFixed(2) + ' ч.';
+    msg = t('dayHas') + ' ' + s.have.toFixed(2) + ' ' + t('h') + ', ' +
+          t('willBe') + ' ' + s.total.toFixed(2) + ' ' + t('h') + '.';
   } else if (h > 8){
-    msg = 'Смена дольше 8 часов — ' + (h - 8).toFixed(2) + ' ч пойдут как сверхурочные.';
+    msg = t('shiftLonger') + ' ' + (h - 8).toFixed(2) + ' ' + t('h') + ' ' + t('asOvertime');
   }
 
   el.textContent = msg;
@@ -1043,11 +1304,8 @@ function checkDay(){
 }
 
 /* ---- отсутствия ---- */
-function today_(){
-  var n = new Date();
-  return new Date(n.getTime() - n.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-}
-function dm_(iso){ return iso ? iso.slice(8,10) + '.' + iso.slice(5,7) : ''; }
+function today_(){ return todayTZ(); }
+function dm_(iso){ return fmtDate(iso); }
 
 function renderAway(){
   var q = ($('absQ') ? $('absQ').value : '').trim().toLowerCase();
@@ -1065,14 +1323,14 @@ function renderAway(){
       var now = a.from <= t && a.to >= t;
       return '<div class="away-row">' +
         '<div class="nm">' + esc(a.person) + '</div>' +
-        (now ? '<span class="now">сейчас</span>' : '') +
+        (now ? '<span class="now">' + t('now') + '</span>' : '') +
         '<div class="dt">' + dm_(a.from) + '–' + dm_(a.to) + '</div></div>';
     }).join('');
   }
   var sick = live.filter(function(a){ return a.type === 'Больничный'; });
   var vac  = live.filter(function(a){ return a.type === 'Отпуск'; });
-  draw($('listSick'), sick, q ? 'ничего не найдено' : 'никого');
-  draw($('listVac'),  vac,  q ? 'ничего не найдено' : 'никого');
+  draw($('listSick'), sick, t(q ? 'notFound' : 'nobody'));
+  draw($('listVac'),  vac,  t(q ? 'notFound' : 'nobody'));
   $('awayCnt').textContent = live.length;
 
   // свои записи в кабинете
@@ -1117,14 +1375,13 @@ function renderPay(list){
   var gross = base * rate + over * rate * k;
   var sum = ndfl ? gross * 0.87 : gross;
 
-  $('paySum').textContent = rate ? money(sum) : '0 ₽';
-  $('payNote').textContent = !rate ? 'Введите ставку'
-    : (ndfl ? 'на руки после НДФЛ 13%' : 'начислено до вычета НДФЛ');
+  $('paySum').textContent = rate ? money(sum) : money(0);
+  $('payNote').textContent = !rate ? t('enterRate') : t(ndfl ? 'net' : 'gross');
   $('payRows').innerHTML =
-    '<div><span>Часы в пределах 8</span><b>' + base.toFixed(2) + ' ч</b></div>' +
-    '<div><span>Часы сверх 8 (×' + k + ')</span><b>' + over.toFixed(2) + ' ч</b></div>' +
-    (rate && ndfl ? '<div><span>Начислено</span><b>' + money(gross) + '</b></div>' : '') +
-    (rate ? '<div><span>Ставка</span><b>' + money(rate) + '/ч</b></div>' : '');
+    '<div><span>' + t('within8') + '</span><b>' + base.toFixed(2) + ' ' + t('h') + '</b></div>' +
+    '<div><span>' + t('over8') + ' (×' + k + ')</span><b>' + over.toFixed(2) + ' ' + t('h') + '</b></div>' +
+    (rate && ndfl ? '<div><span>' + t('accrued') + '</span><b>' + money(gross) + '</b></div>' : '') +
+    (rate ? '<div><span>' + t('rateRow') + '</span><b>' + money(rate) + '/' + t('h') + '</b></div>' : '');
 }
 
 /* ---- динамический свет ----
@@ -1137,7 +1394,7 @@ function setLight(level){
   root.setProperty('--sat', (1 + level * 0.3).toFixed(2));
   root.setProperty('--lh', (225 + level * 135).toFixed(0));      // тон точки-индикатора
   var el = document.getElementById('load');
-  if (el) el.querySelector('span').textContent = 'нагрузка ' + Math.round(level * 100) + '%';
+  if (el) el.querySelector('span').textContent = t('load') + ' ' + Math.round(level * 100) + '%';
 }
 
 /* ---- расчёты ---- */
@@ -1154,10 +1411,7 @@ function toISO(d){
   if (d.indexOf('.') > -1){ var p = d.split('.'); return p[2] + '-' + p[1] + '-' + p[0]; }
   return d.slice(0, 10);
 }
-function ru(d, full){
-  var i = toISO(d);
-  return i ? i.slice(8,10) + '.' + i.slice(5,7) + (full ? '.' + i.slice(0,4) : '') : d;
-}
+function ru(d, full){ return fmtDate(toISO(d), full); }
 function esc(s){
   return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){
     return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c];
@@ -1197,11 +1451,9 @@ function agg(list){
   return a;
 }
 
-var MONTH_RU = ['Январь','Февраль','Март','Апрель','Май','Июнь',
-                'Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
-function monthLabel(key){                     // «2026-07» → «Июль 2026»
-  if (!key) return 'нет данных';
-  return MONTH_RU[Number(key.slice(5, 7)) - 1] + ' ' + key.slice(0, 4);
+function monthLabel(key){                     // «2026-07» → «Июль 2026» на выбранном языке
+  if (!key) return t('noData');
+  return monthName(Number(key.slice(5, 7))) + ' ' + key.slice(0, 4);
 }
 
 // лучший месяц ищем по всей своей истории, а не по выбранному периоду
@@ -1226,12 +1478,12 @@ function renderStats(list){
   var b = bestMonths();
   // всё считается только по своим сменам — чужих данных на странице нет
   var cards = [
-    { k:'cup',   id:'', m:b.hKey, cap:'Топ часов',
-      v: b.hKey ? b.hVal.toFixed(1) : '—', u:'ч',  n: monthLabel(b.hKey) },
-    { k:'stack', id:'', m:b.nKey, cap:'Топ по сменам',
-      v: b.nKey ? b.nVal : '—',            u:'см', n: monthLabel(b.nKey) },
-    { k:'clock', id:'',     cap:'Средняя смена', v: a.avg.toFixed(2), u:'ч',  n:'по вашим записям' },
-    { k:'flame', id:'over', cap:'Переработки',   v: a.over,           u:'см', n:'дольше 8 часов' }
+    { k:'cup',   id:'', m:b.hKey, cap:t('topHours'),
+      v: b.hKey ? b.hVal.toFixed(1) : '—', u:t('h'),  n: monthLabel(b.hKey) },
+    { k:'stack', id:'', m:b.nKey, cap:t('topShifts'),
+      v: b.nKey ? b.nVal : '—',            u:t('sh'), n: monthLabel(b.nKey) },
+    { k:'clock', id:'',     cap:t('avgShift'),  v: a.avg.toFixed(2), u:t('h'),  n:t('byYourRecords') },
+    { k:'flame', id:'over', cap:t('overtime'),  v: a.over,           u:t('sh'), n:t('longer8') }
   ];
 
   var box = $('stats');
@@ -1294,7 +1546,7 @@ function paintList(list){
     if (!em){
       em = document.createElement('div');
       em.className = 'empty enter';
-      em.textContent = 'Пока пусто. Запишите первую смену — она появится здесь и в таблице.';
+      em.textContent = t('empty');
       box.appendChild(em);
       requestAnimationFrame(function(){ em.classList.add('enter-active'); });
     }
@@ -1407,8 +1659,8 @@ function renderCab(){
   var a = agg(m);
 
   $('cabName').textContent = auth.login;
-  $('cabLead').textContent = 'Всего в табеле ' + mine.length + ' смен. Ниже — выбранный месяц; ' +
-                             'нажмите на смену, чтобы поправить часы или комментарий.';
+  $('cabLead').textContent = t('totalIn') + ' ' + mine.length + ' ' + t('shiftsWord') +
+                             '. ' + t('tapToEdit');
   $('tHours').textContent = a.sum.toFixed(2);
   $('tShifts').textContent = a.n;
   $('tAvg').innerHTML = a.avg.toFixed(2) + '<span>ч</span>';
@@ -1416,8 +1668,8 @@ function renderCab(){
   $('tNight').textContent = a.night;
   var pct = Math.min(100, Math.round(a.sum / NORM * 100));
   $('tBar').style.width = pct + '%';
-  $('tBarL').textContent = pct + '% от нормы';
-  $('tNorm').textContent = 'норма ' + NORM + ' ч';
+  $('tBarL').textContent = pct + t('pctNorm');
+  $('tNorm').textContent = t('norm') + ' ' + NORM + ' ' + t('h');
 
   renderPay(m);
   renderAway();
@@ -1425,7 +1677,7 @@ function renderCab(){
   var box = $('cabList');
   box.innerHTML = '';
   if (!m.length){
-    box.innerHTML = '<div class="empty">За этот месяц смен нет.</div>';
+    box.innerHTML = '<div class="empty">' + t('noneThisMonth') + '</div>';
     return;
   }
   m.forEach(function(r){ box.appendChild(makeRow(r, true, true)); });
@@ -1447,12 +1699,12 @@ function rowClick(e){
   var row = e.target.closest('.row');
   if (!row) return;
   var r = rows.filter(function(x){ return String(x.id) === row.dataset.id; })[0];
-  if (!r) { say('У этой строки нет id — правьте её в таблице.', true); return; }
+  if (!r) { say(t('noId'), true); return; }
   if (!same(r.person, auth.login)) return;                  // чужое не трогаем
   if (b){
-    if (!confirm('Удалить эту смену?')) return;
+    if (!confirm(t('confirmDelShift'))) return;
     send({ action:'delete', login:auth.login, token:auth.token, id:r.id },
-         function(){ say('Смена удалена'); });
+         function(){ say(t('deletedShift')); });
     return;
   }
   openEdit(r);
@@ -1488,10 +1740,10 @@ $('stats').addEventListener('click', function(e){
 
 $('add').addEventListener('click', function(){
   var person = $('person').value.trim();
-  if (!person) { say('Укажите сотрудника.', true); $('person').focus(); return; }
-  if (!$('date').value) { say('Укажите дату.', true); return; }
+  if (!person) { say(t('needEmployee'), true); $('person').focus(); return; }
+  if (!$('date').value) { say(t('needDate'), true); return; }
   var btn = this;
-  if (!isAuthed()){ say('Войдите в кабинет, чтобы записать смену.', true); openCab(); return; }
+  if (!isAuthed()){ say(t('needAuthAdd'), true); openCab(); return; }
   btn.disabled = true;
   if (isTouch && document.activeElement) document.activeElement.blur();
   send({
@@ -1502,7 +1754,7 @@ $('add').addEventListener('click', function(){
     comment:$('comment').value.trim()
   }, function(d){
     $('comment').value = '';
-    say('Смена записана в таблицу');
+    say(t('savedShift'));
     if (d && d.warn) setTimeout(function(){ say(d.warn, true); }, 3600);
     checkDay();
   });
@@ -1529,9 +1781,7 @@ function setMode(m){
   });
   $('rep2').hidden = (m !== 'reg');
   $('lPass').setAttribute('autocomplete', m === 'reg' ? 'new-password' : 'current-password');
-  $('lHint').textContent = m === 'reg'
-    ? 'Придумайте пароль — логин закрепится за ним. Фамилию пишите так же, как её пишут в табеле.'
-    : 'Пароль хранится в таблице только в виде необратимого хеша — прочитать его нельзя.';
+  $('lHint').textContent = t(m === 'reg' ? 'hintReg' : 'hintHash');
 }
 $('tabs').addEventListener('click', function(e){
   var b = e.target.closest('.tab');
@@ -1541,12 +1791,12 @@ $('tabs').addEventListener('click', function(e){
 function doLogin(){
   var login = $('lLogin').value.trim().replace(/\s+/g, ' ');
   var pass = $('lPass').value;
-  if (!login) { say('Введите логин.', true); $('lLogin').focus(); return; }
-  if (!pass || pass.length < 4) { say('Пароль от 4 знаков.', true); $('lPass').focus(); return; }
+  if (!login) { say(t('needLogin'), true); $('lLogin').focus(); return; }
+  if (!pass || pass.length < 4) { say(t('needPass'), true); $('lPass').focus(); return; }
   if (authMode === 'reg' && pass !== $('lPass2').value){
-    say('Пароли не совпадают.', true); $('lPass2').focus(); return;
+    say(t('passMismatch'), true); $('lPass2').focus(); return;
   }
-  if (apiVer && apiVer < 5) { say(OLD_SCRIPT, true); return; }
+  if (apiVer && apiVer < 5) { say(t('scriptOld'), true); return; }
   $('lGo').disabled = true;
   send({ action: (authMode === 'reg' ? 'register' : 'auth'), login:login, pass:pass }, function(d){
     auth = { login:d.login, token:d.token };
@@ -1554,7 +1804,7 @@ function doLogin(){
     $('lPass').value = ''; $('lPass2').value = '';
     applyAuth();
     renderCab();
-    say(d.isNew ? 'Профиль создан' : 'Вы вошли');
+    say(t(d.isNew ? 'created' : 'signedIn'));
     $('lGo').disabled = false;
   }, function(e){
     $('lGo').disabled = false;
@@ -1574,7 +1824,7 @@ $('api').addEventListener('change', function(){
   API_URL = v;
   try { localStorage.setItem(URL_KEY, v); } catch(e){}
   mode = 'fetch'; lastErr = '';
-  say('Адрес сохранён, проверяю связь');
+  say(t('urlSaved'));
   load();
 });
 $('lLogin').addEventListener('keydown', function(e){ if (e.key === 'Enter') $('lPass').focus(); });
@@ -1586,21 +1836,21 @@ $('absQ').addEventListener('input', renderAway);
 });
 
 $('aAdd').addEventListener('click', function(){
-  if (!$('aFrom').value || !$('aTo').value){ say('Укажите обе даты.', true); return; }
-  if ($('aTo').value < $('aFrom').value){ say('Дата «по» раньше даты «с».', true); return; }
+  if (!$('aFrom').value || !$('aTo').value){ say(t('needBothDates'), true); return; }
+  if ($('aTo').value < $('aFrom').value){ say(t('badRange'), true); return; }
   var b = this; b.disabled = true;
   send({ action:'absence', login:auth.login, token:auth.token,
          type:$('aType').value, from:$('aFrom').value, to:$('aTo').value },
-    function(){ say($('aType').value + ' отмечен'); b.disabled = false; },
+    function(){ say(t($('aType').value === 'Отпуск' ? 'vacation' : 'sick') + ' — ' + t('absAdded')); b.disabled = false; },
     function(){ b.disabled = false; });
 });
 
 $('myAbs').addEventListener('click', function(e){
   var b = e.target.closest('[data-abs]');
   if (!b) return;
-  if (!confirm('Убрать эту запись?')) return;
+  if (!confirm(t('confirmDelAbs'))) return;
   send({ action:'absenceDel', login:auth.login, token:auth.token, id:b.dataset.abs },
-       function(){ say('Запись убрана'); });
+       function(){ say(t('absRemoved')); });
 });
 
 $('cabOut').addEventListener('click', function(){
@@ -1609,17 +1859,17 @@ $('cabOut').addEventListener('click', function(){
   rows = []; absences = [];        // на экране не остаётся ничего личного
   applyAuth();
   render();
-  say('Вы вышли из кабинета');
+  say(t('signedOut'));
 });
 
 $('cabPass').addEventListener('click', function(){
-  var p = prompt('Новый пароль (от 4 знаков):');
+  var p = prompt(t('newPassPrompt'));
   if (p === null) return;
   if (p.trim().length < 4) { say('Пароль от 4 знаков.', true); return; }
   send({ action:'setPass', login:auth.login, token:auth.token, pass:p.trim() }, function(d){
     auth.token = d.token;
     saveAuth(auth);
-    say('Пароль изменён');
+    say(t('passChanged'));
   });
 });
 
@@ -1641,7 +1891,8 @@ $('eSave').addEventListener('click', function(){
   if (r){
     var s = dayState(r.person, r.date, parseFloat($('eHours').value) || 0, editId);
     if (s.over){
-      say('За сутки выйдет ' + s.total.toFixed(2) + ' ч — предел ' + MAX_DAY_HOURS + ' ч.', true);
+      say(t('dayOver') + ' ' + s.total.toFixed(2) + ' ' + t('h') + ' — ' +
+          t('overLimit') + ' ' + MAX_DAY_HOURS + ' ' + t('h'), true);
       return;
     }
   }
@@ -1649,17 +1900,17 @@ $('eSave').addEventListener('click', function(){
     action:'update', login:auth.login, token:auth.token, id:editId,
     start:$('eStart').value, end:$('eEnd').value,
     hours:$('eHours').value, comment:$('eComment').value.trim()
-  }, function(){ $('mEdit').hidden = true; say('Смена изменена'); });
+  }, function(){ $('mEdit').hidden = true; say(t('changedShift')); });
 });
 $('eDel').addEventListener('click', function(){
   if (!confirm('Удалить эту смену?')) return;
   send({ action:'delete', login:auth.login, token:auth.token, id:editId },
-       function(){ $('mEdit').hidden = true; say('Смена удалена'); });
+       function(){ $('mEdit').hidden = true; say(t('deletedShift')); });
 });
 
 document.addEventListener('visibilitychange', function(){ if (!document.hidden) load(); });
 window.addEventListener('online', load);
-window.addEventListener('offline', function(){ setState('err', 'нет сети'); });
+window.addEventListener('offline', function(){ setState('err', t('noNet')); });
 window.addEventListener('resize', function(){ clearTimeout(window.rz); window.rz = setTimeout(render, 200); });
 
 /* ---- запуск ---- */
